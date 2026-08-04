@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sudoku Interativo</title>
+  <style>
+    :root {
+      --bg-color: #f4f7f6;
+      --card-bg: #ffffff;
+      --border-color: #333;
+      --light-border: #ccc;
+      --correct-color: #2e7d32;
+      --error-color: #c62828;
+      --selected-bg: #e3f2fd;
+      --primary-color: #1976d2;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background-color: var(--bg-color);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .container {
+      background: var(--card-bg);
+      padding: 24px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      max-width: 500px;
+      width: 100%;
+    }
+
+    h1 {
+      text-align: center;
+      margin-top: 0;
+      color: #333;
+    }
+
+    .controls {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    select, button {
+      padding: 8px 12px;
+      font-size: 14px;
+      border-radius: 6px;
+      border: 1px solid var(--light-border);
+      cursor: pointer;
+    }
+
+    button {
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      transition: background 0.2s;
+    }
+
+    button:hover {
+      opacity: 0.9;
+    }
+
+    .toggle-label {
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+    }
+
+    .status {
+      text-align: center;
+      font-size: 14px;
+      font-weight: bold;
+      height: 20px;
+      color: var(--error-color);
+    }
+
+    /* Tabuleiro Sudoku */
+    .sudoku-board {
+      display: grid;
+      grid-template-columns: repeat(9, 1fr);
+      border: 3px solid var(--border-color);
+      margin: 0 auto 20px auto;
+      width: 100%;
+      max-width: 400px;
+      aspect-ratio: 1;
+    }
+
+    .cell {
+      border: 1px solid var(--light-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      font-weight: bold;
+      user-select: none;
+      cursor: pointer;
+      background: #fff;
+    }
+
+    /* Bordas dos subgrids 3x3 */
+    .cell:nth-child(3n) { border-right: 2px solid var(--border-color); }
+    .cell:nth-child(9n) { border-right: none; }
+    .cell:nth-child(1) { border-top: none; }
+    
+    .sudoku-board > div:nth-child(n+19):nth-child(-n+27),
+    .sudoku-board > div:nth-child(n+46):nth-child(-n+54) {
+      border-bottom: 2px solid var(--border-color);
+    }
+
+    .cell.given {
+      background-color: #f0f0f0;
+      color: #000;
+      cursor: not-allowed;
+    }
+
+    .cell.correct {
+      color: var(--correct-color);
+      background-color: #e8f5e9;
+    }
+
+    .cell.incorrect {
+      color: var(--error-color);
+      background-color: #ffebee;
+    }
+
+    .cell.selected {
+      outline: 2px solid var(--primary-color);
+      background-color: var(--selected-bg);
+    }
+
+    /* Teclado numérico */
+    .numpad {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      max-width: 400px;
+      margin: 0 auto;
+    }
+
+    .numpad button {
+      padding: 12px;
+      font-size: 18px;
+      font-weight: bold;
+      background-color: #e0e0e0;
+      color: #333;
+    }
+
+    .numpad button.erase {
+      grid-column: span 1;
+      background-color: #ffcdd2;
+      color: #b71c1c;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Sudoku</h1>
+
+  <div class="controls">
+    <div class="row">
+      <label>Dificuldade:
+        <select id="difficulty">
+          <option value="easy">Fácil</option>
+          <option value="medium" selected>Médio</option>
+          <option value="hard">Difícil</option>
+        </select>
+      </label>
+      <button id="btn-new">Criar Outro</button>
+      <button id="btn-reset">Reiniciar</button>
+    </div>
+
+    <div class="row">
+      <label class="toggle-label">
+        <input type="checkbox" id="limit-errors-toggle" checked>
+        Reiniciar após 3 erros
+      </label>
+      <span id="error-counter">Erros: 0/3</span>
+    </div>
+  </div>
+
+  <div class="status" id="status-message"></div>
+
+  <div id="board" class="sudoku-board"></div>
+
+  <div class="numpad">
+    <button onclick="inputNumber(1)">1</button>
+    <button onclick="inputNumber(2)">2</button>
+    <button onclick="inputNumber(3)">3</button>
+    <button onclick="inputNumber(4)">4</button>
+    <button onclick="inputNumber(5)">5</button>
+    <button onclick="inputNumber(6)">6</button>
+    <button onclick="inputNumber(7)">7</button>
+    <button onclick="inputNumber(8)">8</button>
+    <button onclick="inputNumber(9)">9</button>
+    <button class="erase" onclick="inputNumber(0)">⌫</button>
+  </div>
+</div>
+
+<script>
+  // Solução base válida
+  const baseSolution = [
+    [5,3,4,6,7,8,9,1,2],
+    [6,7,2,1,9,5,3,4,8],
+    [1,9,8,3,4,2,5,6,7],
+    [8,5,9,7,6,1,4,2,3],
+    [4,2,6,8,5,3,7,9,1],
+    [7,1,3,9,2,4,8,5,6],
+    [9,6,1,5,3,7,2,8,4],
+    [2,8,7,4,1,9,6,3,5],
+    [3,4,5,2,8,6,1,7,9]
+  ];
+
+  let currentSolution = [];
+  let initialBoard = [];
+  let userBoard = [];
+  let selectedCell = null;
+  let errorCount = 0;
+
+  const boardEl = document.getElementById('board');
+  const difficultyEl = document.getElementById('difficulty');
+  const limitToggleEl = document.getElementById('limit-errors-toggle');
+  const errorCounterEl = document.getElementById('error-counter');
+  const statusEl = document.getElementById('status-message');
+
+  function shuffleSolution() {
+    // Permutação simples de números para gerar novas soluções válidas
+    let nums = [1,2,3,4,5,6,7,8,9].sort(() => Math.random() - 0.5);
+    let map = {};
+    for(let i=0; i<9; i++) map[i+1] = nums[i];
+
+    return baseSolution.map(row => row.map(val => map[val]));
+  }
+
+  function generatePuzzle() {
+    currentSolution = shuffleSolution();
+    
+    let removalCount = 30; // fácil
+    if (difficultyEl.value === 'medium') removalCount = 42;
+    if (difficultyEl.value === 'hard') removalCount = 54;
+
+    initialBoard = currentSolution.map(row => [...row]);
+    
+    let removed = 0;
+    while (removed < removalCount) {
+      let r = Math.floor(Math.random() * 9);
+      let c = Math.floor(Math.random() * 9);
+      if (initialBoard[r][c] !== 0) {
+        initialBoard[r][c] = 0;
+        removed++;
+      }
+    }
+
+    resetGame();
+  }
+
+  function resetGame() {
+    userBoard = initialBoard.map(row => [...row]);
+    errorCount = 0;
+    selectedCell = null;
+    statusEl.textContent = '';
+    updateErrorDisplay();
+    renderBoard();
+  }
+
+  function updateErrorDisplay() {
+    if (limitToggleEl.checked) {
+      errorCounterEl.style.display = 'inline';
+      errorCounterEl.textContent = `Erros: ${errorCount}/3`;
+    } else {
+      errorCounterEl.style.display = 'none';
+    }
+  }
+
+  function renderBoard() {
+    boardEl.innerHTML = '';
+    for (let r = 0; r < 9; r++) {
+      for (let c = 0; c < 9; c++) {
+        const cell = document.createElement('div');
+        cell.classList.add('cell');
+
+        const val = userBoard[r][c];
+        const isGiven = initialBoard[r][c] !== 0;
+
+        if (val !== 0) {
+          cell.textContent = val;
+          if (isGiven) {
+            cell.classList.add('given');
+          } else {
+            // Validação verde / vermelho
+            if (val === currentSolution[r][c]) {
+              cell.classList.add('correct');
+            } else {
+              cell.classList.add('incorrect');
+            }
+          }
+        }
+
+        if (selectedCell && selectedCell.r === r && selectedCell.c === c) {
+          cell.classList.add('selected');
+        }
+
+        cell.addEventListener('click', () => {
+          if (!isGiven) {
+            selectedCell = { r, c };
+            renderBoard();
+          }
+        });
+
+        boardEl.appendChild(cell);
+      }
+    }
+  }
+
+  function inputNumber(num) {
+    if (!selectedCell) return;
+    const { r, c } = selectedCell;
+
+    if (initialBoard[r][c] !== 0) return; // célula fixa
+
+    // Se estiver apagando
+    if (num === 0) {
+      userBoard[r][c] = 0;
+      renderBoard();
+      return;
+    }
+
+    // Se inserir um erro
+    if (num !== currentSolution[r][c]) {
+      errorCount++;
+      updateErrorDisplay();
+
+      if (limitToggleEl.checked && errorCount >= 3) {
+        statusEl.textContent = '3 erros atingidos! Reiniciando fase...';
+        setTimeout(resetGame, 1500);
+        return;
+      }
+    }
+
+    userBoard[r][c] = num;
+    renderBoard();
+    checkWin();
+  }
+
+  function checkWin() {
+    for (let r = 0; r < 9; r++) {
+      for (let c = 0; c < 9; c++) {
+        if (userBoard[r][c] !== currentSolution[r][c]) return;
+      }
+    }
+    statusEl.style.color = '#2e7d32';
+    statusEl.textContent = 'Parabéns! Você venceu!';
+  }
+
+  // Teclado físico
+  document.addEventListener('keydown', (e) => {
+    if (e.key >= '1' && e.key <= '9') inputNumber(parseInt(e.key));
+    if (e.key === 'Backspace' || e.key === 'Delete') inputNumber(0);
+  });
+
+  document.getElementById('btn-new').addEventListener('click', generatePuzzle);
+  document.getElementById('btn-reset').addEventListener('click', resetGame);
+  difficultyEl.addEventListener('change', generatePuzzle);
+  limitToggleEl.addEventListener('change', updateErrorDisplay);
+
+  // Inicializa o primeiro jogo
+  generatePuzzle();
+</script>
+</body>
+</html>
