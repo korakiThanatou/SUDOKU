@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sudoku Interativo Completo</title>
+  <title>Sudoku Interativo Responsivo</title>
   <style>
     :root {
       --bg-color: #f4f7f6;
@@ -20,6 +20,10 @@
       --block-completed-bg: #e0e0e0;
     }
 
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background-color: var(--bg-color);
@@ -28,33 +32,32 @@
       align-items: flex-start;
       min-height: 100vh;
       margin: 0;
-      padding: 20px;
-      box-sizing: border-box;
+      padding: 12px;
       position: relative;
     }
 
-    /* Botão do Easter Egg no canto superior direito */
+    /* Botão do Easter Egg */
     .easter-egg-btn {
       position: fixed;
-      top: 15px;
-      right: 15px;
-      background: rgba(255, 255, 255, 0.8);
+      top: 12px;
+      right: 12px;
+      background: rgba(255, 255, 255, 0.9);
       border: 1px solid var(--light-border);
       border-radius: 50%;
-      width: 36px;
-      height: 36px;
+      width: 40px;
+      height: 40px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 16px;
+      font-size: 18px;
       cursor: pointer;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
       transition: transform 0.2s, background-color 0.2s;
       z-index: 90;
     }
 
     .easter-egg-btn:hover {
-      transform: scale(1.15);
+      transform: scale(1.1);
       background: #fff0f3;
     }
 
@@ -62,60 +65,65 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 20px;
+      gap: 16px;
       max-width: 800px;
       width: 100%;
+      margin-top: 10px;
     }
 
     .top-section {
       display: flex;
       flex-wrap: wrap;
-      gap: 20px;
+      gap: 16px;
       width: 100%;
       justify-content: center;
     }
 
     .container {
       background: var(--card-bg);
-      padding: 24px;
+      padding: 16px;
       border-radius: 12px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-      flex: 1 1 420px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+      flex: 1 1 400px;
       max-width: 480px;
-      box-sizing: border-box;
+      width: 100%;
       position: relative;
     }
 
     .sidebar {
       background: var(--card-bg);
-      padding: 24px;
+      padding: 16px;
       border-radius: 12px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
       flex: 1 1 240px;
-      max-width: 280px;
-      box-sizing: border-box;
+      max-width: 480px;
+      width: 100%;
     }
 
     .bottom-section {
       background: var(--card-bg);
-      padding: 20px 24px;
+      padding: 16px;
       border-radius: 12px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
       width: 100%;
-      box-sizing: border-box;
+      overflow-x: auto;
     }
 
-    h1, h2, h3 {
+    h1 {
       text-align: center;
-      margin-top: 0;
+      margin: 0 0 12px 0;
       color: #333;
+      font-size: 24px;
     }
 
     h2, h3 {
-      font-size: 18px;
+      text-align: center;
+      margin-top: 0;
+      color: #333;
+      font-size: 16px;
       border-bottom: 2px solid var(--primary-color);
-      padding-bottom: 8px;
-      margin-bottom: 16px;
+      padding-bottom: 6px;
+      margin-bottom: 12px;
     }
 
     .hud-bar {
@@ -123,16 +131,17 @@
       justify-content: space-between;
       align-items: center;
       background: #eef2f5;
-      padding: 10px 14px;
+      padding: 8px 12px;
       border-radius: 8px;
-      margin-bottom: 15px;
+      margin-bottom: 12px;
       font-weight: bold;
+      font-size: 14px;
     }
 
     .timer-container {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
     }
 
     .btn-hud {
@@ -152,8 +161,8 @@
     .controls {
       display: flex;
       flex-direction: column;
-      gap: 12px;
-      margin-bottom: 15px;
+      gap: 10px;
+      margin-bottom: 12px;
     }
 
     .row {
@@ -161,11 +170,12 @@
       justify-content: space-between;
       align-items: center;
       gap: 8px;
+      flex-wrap: wrap;
     }
 
     select, button {
-      padding: 8px 12px;
-      font-size: 14px;
+      padding: 6px 10px;
+      font-size: 13px;
       border-radius: 6px;
       border: 1px solid var(--light-border);
       cursor: pointer;
@@ -183,28 +193,30 @@
     }
 
     .toggle-label {
-      font-size: 13px;
+      font-size: 12px;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 4px;
       cursor: pointer;
     }
 
     .status {
       text-align: center;
-      font-size: 14px;
+      font-size: 13px;
       font-weight: bold;
-      min-height: 20px;
-      margin-bottom: 8px;
+      min-height: 18px;
+      margin-bottom: 6px;
       color: var(--error-color);
     }
 
+    /* Tabuleiro Responsivo */
     .sudoku-board {
       display: grid;
       grid-template-columns: repeat(9, 1fr);
       border: 3px solid var(--border-color);
-      margin: 0 auto 15px auto;
+      margin: 0 auto 12px auto;
       width: 100%;
+      max-width: 400px;
       aspect-ratio: 1;
       position: relative;
     }
@@ -214,7 +226,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 20px;
+      font-size: clamp(14px, 4vw, 20px);
       font-weight: bold;
       user-select: none;
       cursor: pointer;
@@ -230,31 +242,15 @@
       border-bottom: 2px solid var(--border-color);
     }
 
-    .cell.block-completed {
-      background-color: var(--block-completed-bg);
-    }
-
-    .cell.line-highlight {
-      background-color: var(--highlight-line-bg);
-    }
-
-    .cell.given {
-      color: #000;
-    }
-
-    .cell.correct {
-      color: var(--correct-color);
-    }
-
+    .cell.block-completed { background-color: var(--block-completed-bg); }
+    .cell.line-highlight { background-color: var(--highlight-line-bg); }
+    .cell.given { color: #000; }
+    .cell.correct { color: var(--correct-color); }
     .cell.incorrect {
       color: var(--error-color);
       background-color: #ffebee !important;
     }
-
-    .cell.highlighted {
-      background-color: var(--highlight-match-bg) !important;
-    }
-
+    .cell.highlighted { background-color: var(--highlight-match-bg) !important; }
     .cell.selected {
       outline: 2px solid var(--primary-color);
       background-color: var(--selected-bg) !important;
@@ -268,25 +264,29 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      font-size: 22px;
+      font-size: 18px;
       font-weight: bold;
       color: #555;
       z-index: 10;
     }
 
+    /* Teclado Numérico */
     .numpad {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
-      gap: 8px;
+      gap: 6px;
+      max-width: 400px;
+      margin: 0 auto;
     }
 
     .numpad button {
-      padding: 12px;
-      font-size: 18px;
+      padding: 10px 0;
+      font-size: 16px;
       font-weight: bold;
       background-color: #e0e0e0;
       color: #333;
       border: none;
+      border-radius: 6px;
     }
 
     .numpad button.erase {
@@ -301,28 +301,26 @@
 
     /* Sidebar / Recordes */
     .records-list {
-      list-style: none;
-      padding: 0;
-      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
     }
 
     .record-item {
       background: #f8f9fa;
       border: 1px solid var(--light-border);
       border-radius: 8px;
-      padding: 10px 12px;
-      margin-bottom: 12px;
+      padding: 8px 10px;
     }
 
     .record-title {
       font-weight: bold;
-      font-size: 14px;
+      font-size: 13px;
       color: var(--primary-color);
-      margin-bottom: 4px;
     }
 
     .record-time {
-      font-size: 18px;
+      font-size: 16px;
       font-weight: bold;
       color: #333;
     }
@@ -330,7 +328,6 @@
     .record-details {
       font-size: 11px;
       color: #666;
-      margin-top: 4px;
     }
 
     .btn-clear-records {
@@ -344,40 +341,25 @@
       font-size: 12px;
     }
 
-    /* Tabela de Últimos Jogos */
+    /* Tabela de Histórico */
     .history-table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 13px;
-      margin-top: 10px;
+      font-size: 12px;
+      min-width: 320px;
     }
 
     .history-table th, .history-table td {
       border: 1px solid var(--light-border);
-      padding: 8px;
+      padding: 6px;
       text-align: center;
     }
 
-    .history-table th {
-      background-color: #f0f4f8;
-      color: #333;
-    }
+    .history-table th { background-color: #f0f4f8; }
+    .status-win { color: var(--correct-color); font-weight: bold; }
+    .status-fail { color: var(--error-color); font-weight: bold; }
 
-    .history-table tr:nth-child(even) {
-      background-color: #fafafa;
-    }
-
-    .status-win {
-      color: var(--correct-color);
-      font-weight: bold;
-    }
-
-    .status-fail {
-      color: var(--error-color);
-      font-weight: bold;
-    }
-
-    /* Modal Generico (Vitória e Easter Egg) */
+    /* Modais */
     .modal {
       display: none;
       position: fixed;
@@ -386,63 +368,63 @@
       z-index: 100;
       justify-content: center;
       align-items: center;
+      padding: 16px;
       animation: fadeIn 0.3s forwards;
     }
 
     .modal-content {
       background: #fff;
-      padding: 30px;
+      padding: 24px;
       border-radius: 16px;
       text-align: center;
-      max-width: 360px;
-      width: 90%;
+      max-width: 340px;
+      width: 100%;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-      animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      animation: popIn 0.3s ease-out;
     }
 
-    .modal h2 {
-      font-size: 24px;
-      color: #2e7d32;
-      border-bottom: none;
-      margin-bottom: 10px;
-    }
-
+    .modal h2 { font-size: 22px; color: #2e7d32; border-bottom: none; }
+    
     .love-card {
       background: #fff0f5;
       border: 1px solid #ffb6c1;
-      padding: 20px;
+      padding: 16px;
       border-radius: 12px;
-      font-size: 20px;
+      font-size: 18px;
       font-weight: bold;
       color: #d81b60;
-      margin: 15px 0;
+      margin: 12px 0;
     }
 
     .win-stats {
       background: #f0f7f4;
-      border-radius: 10px;
-      padding: 15px;
-      margin: 20px 0;
+      border-radius: 8px;
+      padding: 12px;
+      margin: 16px 0;
       text-align: left;
-      font-size: 14px;
-    }
-
-    .win-stats div {
-      margin-bottom: 6px;
+      font-size: 13px;
     }
 
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-    @keyframes popIn { from { transform: scale(0.8); } to { transform: scale(1); } }
+    @keyframes popIn { from { transform: scale(0.85); } to { transform: scale(1); } }
+
+    /* Otimizações Específicas para Telas Maiores (PC) */
+    @media (min-width: 768px) {
+      body { padding: 24px; }
+      .container { padding: 24px; }
+      .sidebar { padding: 24px; flex: 1 1 240px; }
+      .records-list { gap: 12px; }
+      .history-table { font-size: 13px; }
+      .history-table th, .history-table td { padding: 8px; }
+    }
   </style>
 </head>
 <body>
 
-<!-- Botão do Easter Egg -->
 <button class="easter-egg-btn" id="btn-easter-egg" title="Um recadinho...">💖</button>
 
 <div class="main-wrapper">
   <div class="top-section">
-    <!-- Painel Principal do Jogo -->
     <div class="container">
       <h1>Sudoku</h1>
 
@@ -456,15 +438,17 @@
 
       <div class="controls">
         <div class="row">
-          <label>Dificuldade:
+          <label class="toggle-label">Dificuldade:
             <select id="difficulty">
               <option value="easy">Fácil</option>
               <option value="medium" selected>Médio</option>
               <option value="hard">Difícil</option>
             </select>
           </label>
-          <button class="action-btn" id="btn-new">Criar Outro</button>
-          <button class="action-btn" id="btn-reset">Reiniciar</button>
+          <div style="display:flex; gap:6px;">
+            <button class="action-btn" id="btn-new">Novo</button>
+            <button class="action-btn" id="btn-reset">Reiniciar</button>
+          </div>
         </div>
 
         <div class="row">
@@ -472,7 +456,7 @@
             <input type="checkbox" id="limit-errors-toggle" checked>
             Reiniciar após 3 erros
           </label>
-          <span id="error-counter">Erros: 0/3</span>
+          <span id="error-counter" style="font-size: 12px; font-weight: bold;">Erros: 0/3</span>
         </div>
       </div>
 
@@ -494,7 +478,6 @@
       </div>
     </div>
 
-    <!-- Barra Lateral: Recordes -->
     <div class="sidebar">
       <h2>🏆 Melhores Tempos</h2>
       <div class="records-list">
@@ -518,9 +501,8 @@
     </div>
   </div>
 
-  <!-- Tabela de Últimas Partidas Jogadas -->
   <div class="bottom-section">
-    <h3>📜 Histórico de Últimas Partidas</h3>
+    <h3>📜 Histórico de Partidas</h3>
     <table class="history-table">
       <thead>
         <tr>
@@ -540,21 +522,21 @@
   </div>
 </div>
 
-<!-- Modal de Vitória -->
+<!-- Modal Vitória -->
 <div class="modal" id="win-modal">
   <div class="modal-content">
     <h2>🎉 VITÓRIA! 🎉</h2>
-    <p>Você completou o Sudoku com sucesso!</p>
+    <p style="font-size: 14px; color: #555;">Você completou o Sudoku!</p>
     <div class="win-stats">
       <div>⏱️ <strong>Tempo:</strong> <span id="win-time">--:--</span></div>
-      <div>❌ <strong>Erros cometidos:</strong> <span id="win-errors">0</span></div>
-      <div>💡 <strong>Dicas usadas:</strong> <span id="win-hints">0</span></div>
+      <div>❌ <strong>Erros:</strong> <span id="win-errors">0</span></div>
+      <div>💡 <strong>Dicas:</strong> <span id="win-hints">0</span></div>
     </div>
-    <button class="action-btn" style="padding: 10px 20px; font-size: 16px;" onclick="closeWinModal()">Jogar Novamente</button>
+    <button class="action-btn" style="padding: 10px 20px; font-size: 15px; width: 100%;" onclick="closeWinModal()">Jogar Novamente</button>
   </div>
 </div>
 
-<!-- Modal do Easter Egg -->
+<!-- Modal Easter Egg -->
 <div class="modal" id="easter-egg-modal">
   <div class="modal-content">
     <div class="love-card">
@@ -584,7 +566,6 @@
   let errorCount = 0;
   let hintsUsed = 0;
 
-  // Timer vars
   let timerSeconds = 0;
   let timerInterval = null;
   let isPaused = false;
@@ -639,7 +620,7 @@
   function generatePuzzle() {
     currentSolution = shuffleSolution();
     
-    let removalCount = 30; // fácil
+    let removalCount = 30;
     if (difficultyEl.value === 'medium') removalCount = 42;
     if (difficultyEl.value === 'hard') removalCount = 54;
 
@@ -738,14 +719,12 @@
         const val = userBoard[r][c];
         const isGiven = initialBoard[r][c] !== 0;
 
-        // Bloco 3x3 completo
         const blockR = Math.floor(r / 3);
         const blockC = Math.floor(c / 3);
         if (isBlockCompleted(blockR, blockC)) {
           cell.classList.add('block-completed');
         }
 
-        // Destaque de Linha e Coluna
         if (selectedCell && (selectedCell.r === r || selectedCell.c === c)) {
           cell.classList.add('line-highlight');
         }
@@ -866,7 +845,6 @@
     generatePuzzle();
   }
 
-  // --- Functions do Easter Egg ---
   function openEasterEggModal() {
     document.getElementById('easter-egg-modal').style.display = 'flex';
   }
@@ -875,7 +853,6 @@
     document.getElementById('easter-egg-modal').style.display = 'none';
   }
 
-  // --- Melhores Tempos ---
   function loadBestTimes() {
     ['easy', 'medium', 'hard'].forEach(diff => {
       const time = localStorage.getItem(`sudoku_best_${diff}`);
@@ -910,10 +887,8 @@
     }
   }
 
-  // --- Histórico de Últimas Partidas ---
   function addHistoryRecord(result) {
     const history = JSON.parse(localStorage.getItem('sudoku_history') || '[]');
-    
     const diffNames = { easy: 'Fácil', medium: 'Médio', hard: 'Difícil' };
 
     const newRecord = {
