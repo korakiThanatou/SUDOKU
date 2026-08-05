@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sudoku Interativo Completo</title>
+  <style>
+    :root {
+      --bg-color: #f4f7f6;
+      --card-bg: #ffffff;
+      --border-color: #333;
+      --light-border: #ccc;
+      --correct-color: #2e7d32;
+      --error-color: #c62828;
+      --selected-bg: #bbdefb;
+      --highlight-match-bg: #e1f5fe;
+      --highlight-line-bg: #f0f0f0; /* Destaque cinza para linha e coluna */
+      --primary-color: #1976d2;
+      --hint-color: #f57c00;
+      --block-completed-bg: #e0e0e0; /* Bloco 3x3 completo */
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--bg-color);
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    .main-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      max-width: 800px;
+      width: 100%;
+    }
+
+    .top-section {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      width: 100%;
+      justify-content: center;
+    }
+
+    .container {
+      background: var(--card-bg);
+      padding: 24px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      flex: 1 1 420px;
+      max-width: 480px;
+      box-sizing: border-box;
+      position: relative;
+    }
+
+    .sidebar {
+      background: var(--card-bg);
+      padding: 24px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      flex: 1 1 240px;
+      max-width: 280px;
+      box-sizing: border-box;
+    }
+
+    .bottom-section {
+      background: var(--card-bg);
+      padding: 20px 24px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    h1, h2, h3 {
+      text-align: center;
+      margin-top: 0;
+      color: #333;
+    }
+
+    h2, h3 {
+      font-size: 18px;
+      border-bottom: 2px solid var(--primary-color);
+      padding-bottom: 8px;
+      margin-bottom: 16px;
+    }
+
+    .hud-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #eef2f5;
+      padding: 10px 14px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      font-weight: bold;
+    }
+
+    .timer-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-hud {
+      padding: 4px 8px;
+      font-size: 12px;
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .btn-hint {
+      background-color: var(--hint-color);
+    }
+
+    .controls {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 15px;
+    }
+
+    .row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    select, button {
+      padding: 8px 12px;
+      font-size: 14px;
+      border-radius: 6px;
+      border: 1px solid var(--light-border);
+      cursor: pointer;
+    }
+
+    .action-btn {
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      transition: background 0.2s;
+    }
+
+    .action-btn:hover {
+      opacity: 0.9;
+    }
+
+    .toggle-label {
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+    }
+
+    .status {
+      text-align: center;
+      font-size: 14px;
+      font-weight: bold;
+      min-height: 20px;
+      margin-bottom: 8px;
+      color: var(--error-color);
+    }
+
+    .sudoku-board {
+      display: grid;
+      grid-template-columns: repeat(9, 1fr);
+      border: 3px solid var(--border-color);
+      margin: 0 auto 15px auto;
+      width: 100%;
+      aspect-ratio: 1;
+      position: relative;
+    }
+
+    .cell {
+      border: 1px solid var(--light-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      font-weight: bold;
+      user-select: none;
+      cursor: pointer;
+      background: #fff;
+      transition: background-color 0.15s;
+    }
+
+    .cell:nth-child(3n) { border-right: 2px solid var(--border-color); }
+    .cell:nth-child(9n) { border-right: none; }
+    
+    .sudoku-board > div:nth-child(n+19):nth-child(-n+27),
+    .sudoku-board > div:nth-child(n+46):nth-child(-n+54) {
+      border-bottom: 2px solid var(--border-color);
+    }
+
+    /* Destaques de linha/coluna e células */
+    .cell.block-completed {
+      background-color: var(--block-completed-bg);
+    }
+
+    .cell.line-highlight {
+      background-color: var(--highlight-line-bg);
+    }
+
+    .cell.given {
+      color: #000;
+    }
+
+    .cell.correct {
+      color: var(--correct-color);
+    }
+
+    .cell.incorrect {
+      color: var(--error-color);
+      background-color: #ffebee !important;
+    }
+
+    .cell.highlighted {
+      background-color: var(--highlight-match-bg) !important;
+    }
+
+    .cell.selected {
+      outline: 2px solid var(--primary-color);
+      background-color: var(--selected-bg) !important;
+      z-index: 1;
+    }
+
+    .board-overlay {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(255, 255, 255, 0.95);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 22px;
+      font-weight: bold;
+      color: #555;
+      z-index: 10;
+    }
+
+    .numpad {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+    }
+
+    .numpad button {
+      padding: 12px;
+      font-size: 18px;
+      font-weight: bold;
+      background-color: #e0e0e0;
+      color: #333;
+      border: none;
+    }
+
+    .numpad button.erase {
+      background-color: #ffcdd2;
+      color: #b71c1c;
+    }
+
+    .numpad button.completed {
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    /* Sidebar / Recordes */
+    .records-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .record-item {
+      background: #f8f9fa;
+      border: 1px solid var(--light-border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin-bottom: 12px;
+    }
+
+    .record-title {
+      font-weight: bold;
+      font-size: 14px;
+      color: var(--primary-color);
+      margin-bottom: 4px;
+    }
+
+    .record-time {
+      font-size: 18px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    .record-details {
+      font-size: 11px;
+      color: #666;
+      margin-top: 4px;
+    }
+
+    .btn-clear-records {
+      width: 100%;
+      margin-top: 10px;
+      background-color: #757575;
+      color: white;
+      border: none;
+      padding: 8px;
+      border-radius: 6px;
+      font-size: 12px;
+    }
+
+    /* Tabela de Últimos Jogos */
+    .history-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      margin-top: 10px;
+    }
+
+    .history-table th, .history-table td {
+      border: 1px solid var(--light-border);
+      padding: 8px;
+      text-align: center;
+    }
+
+    .history-table th {
+      background-color: #f0f4f8;
+      color: #333;
+    }
+
+    .history-table tr:nth-child(even) {
+      background-color: #fafafa;
+    }
+
+    .status-win {
+      color: var(--correct-color);
+      font-weight: bold;
+    }
+
+    .status-fail {
+      color: var(--error-color);
+      font-weight: bold;
+    }
+
+    /* Modal de Vitória */
+    .win-modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.6);
+      z-index: 100;
+      justify-content: center;
+      align-items: center;
+      animation: fadeIn 0.3s forwards;
+    }
+
+    .win-modal-content {
+      background: #fff;
+      padding: 30px;
+      border-radius: 16px;
+      text-align: center;
+      max-width: 360px;
+      width: 90%;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .win-modal h2 {
+      font-size: 26px;
+      color: #2e7d32;
+      border-bottom: none;
+      margin-bottom: 10px;
+    }
+
+    .win-stats {
+      background: #f0f7f4;
+      border-radius: 10px;
+      padding: 15px;
+      margin: 20px 0;
+      text-align: left;
+      font-size: 14px;
+    }
+
+    .win-stats div {
+      margin-bottom: 6px;
+    }
+
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes popIn { from { transform: scale(0.8); } to { transform: scale(1); } }
+  </style>
+</head>
+<body>
+
+<div class="main-wrapper">
+  <div class="top-section">
+    <!-- Painel Principal do Jogo -->
+    <div class="container">
+      <h1>Sudoku</h1>
+
+      <div class="hud-bar">
+        <div class="timer-container">
+          ⏱️ <span id="timer-display">00:00</span>
+          <button class="btn-hud" id="btn-pause">Pausar</button>
+        </div>
+        <button class="btn-hud btn-hint" id="btn-hint">💡 Dica (<span id="hint-count">0</span>)</button>
+      </div>
+
+      <div class="controls">
+        <div class="row">
+          <label>Dificuldade:
+            <select id="difficulty">
+              <option value="easy">Fácil</option>
+              <option value="medium" selected>Médio</option>
+              <option value="hard">Difícil</option>
+            </select>
+          </label>
+          <button class="action-btn" id="btn-new">Criar Outro</button>
+          <button class="action-btn" id="btn-reset">Reiniciar</button>
+        </div>
+
+        <div class="row">
+          <label class="toggle-label">
+            <input type="checkbox" id="limit-errors-toggle" checked>
+            Reiniciar após 3 erros
+          </label>
+          <span id="error-counter">Erros: 0/3</span>
+        </div>
+      </div>
+
+      <div class="status" id="status-message"></div>
+
+      <div id="board" class="sudoku-board"></div>
+
+      <div class="numpad">
+        <button id="num-btn-1" onclick="inputNumber(1)">1</button>
+        <button id="num-btn-2" onclick="inputNumber(2)">2</button>
+        <button id="num-btn-3" onclick="inputNumber(3)">3</button>
+        <button id="num-btn-4" onclick="inputNumber(4)">4</button>
+        <button id="num-btn-5" onclick="inputNumber(5)">5</button>
+        <button id="num-btn-6" onclick="inputNumber(6)">6</button>
+        <button id="num-btn-7" onclick="inputNumber(7)">7</button>
+        <button id="num-btn-8" onclick="inputNumber(8)">8</button>
+        <button id="num-btn-9" onclick="inputNumber(9)">9</button>
+        <button class="erase" onclick="inputNumber(0)">⌫</button>
+      </div>
+    </div>
+
+    <!-- Barra Lateral: Recordes -->
+    <div class="sidebar">
+      <h2>🏆 Melhores Tempos</h2>
+      <div class="records-list">
+        <div class="record-item">
+          <div class="record-title">🟢 Fácil</div>
+          <div class="record-time" id="best-easy">--:--</div>
+          <div class="record-details" id="details-easy">---</div>
+        </div>
+        <div class="record-item">
+          <div class="record-title">🟡 Médio</div>
+          <div class="record-time" id="best-medium">--:--</div>
+          <div class="record-details" id="details-medium">---</div>
+        </div>
+        <div class="record-item">
+          <div class="record-title">🔴 Difícil</div>
+          <div class="record-time" id="best-hard">--:--</div>
+          <div class="record-details" id="details-hard">---</div>
+        </div>
+      </div>
+      <button class="btn-clear-records" id="btn-clear-records">Limpar Recordes</button>
+    </div>
+  </div>
+
+  <!-- Tabela de Últimas Partidas Jogadas -->
+  <div class="bottom-section">
+    <h3>📜 Histórico de Últimas Partidas</h3>
+    <table class="history-table">
+      <thead>
+        <tr>
+          <th>Dificuldade</th>
+          <th>Tempo</th>
+          <th>Resultado</th>
+          <th>Erros</th>
+          <th>Dicas</th>
+        </tr>
+      </thead>
+      <tbody id="history-body">
+        <tr>
+          <td colspan="5">Nenhum jogo registrado ainda.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal de Vitória -->
+<div class="win-modal" id="win-modal">
+  <div class="win-modal-content">
+    <h2>🎉 VITÓRIA! 🎉</h2>
+    <p>Você completou o Sudoku com sucesso!</p>
+    <div class="win-stats">
+      <div>⏱️ <strong>Tempo:</strong> <span id="win-time">--:--</span></div>
+      <div>❌ <strong>Erros cometidos:</strong> <span id="win-errors">0</span></div>
+      <div>💡 <strong>Dicas usadas:</strong> <span id="win-hints">0</span></div>
+    </div>
+    <button class="action-btn" style="padding: 10px 20px; font-size: 16px;" onclick="closeWinModal()">Jogar Novamente</button>
+  </div>
+</div>
+
+<script>
+  const baseSolution = [
+    [5,3,4,6,7,8,9,1,2],
+    [6,7,2,1,9,5,3,4,8],
+    [1,9,8,3,4,2,5,6,7],
+    [8,5,9,7,6,1,4,2,3],
+    [4,2,6,8,5,3,7,9,1],
+    [7,1,3,9,2,4,8,5,6],
+    [9,6,1,5,3,7,2,8,4],
+    [2,8,7,4,1,9,6,3,5],
+    [3,4,5,2,8,6,1,7,9]
+  ];
+
+  let currentSolution = [];
+  let initialBoard = [];
+  let userBoard = [];
+  let selectedCell = null;
+  let errorCount = 0;
+  let hintsUsed = 0;
+
+  // Timer vars
+  let timerSeconds = 0;
+  let timerInterval = null;
+  let isPaused = false;
+
+  const boardEl = document.getElementById('board');
+  const difficultyEl = document.getElementById('difficulty');
+  const limitToggleEl = document.getElementById('limit-errors-toggle');
+  const errorCounterEl = document.getElementById('error-counter');
+  const statusEl = document.getElementById('status-message');
+  const timerDisplay = document.getElementById('timer-display');
+  const btnPause = document.getElementById('btn-pause');
+  const hintCountEl = document.getElementById('hint-count');
+
+  function formatTime(totalSeconds) {
+    const mins = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+    const secs = (totalSeconds % 60).toString().padStart(2, '0');
+    return `${mins}:${secs}`;
+  }
+
+  function startTimer() {
+    clearInterval(timerInterval);
+    timerSeconds = 0;
+    isPaused = false;
+    btnPause.textContent = 'Pausar';
+    updateTimerDisplay();
+    timerInterval = setInterval(() => {
+      if (!isPaused) {
+        timerSeconds++;
+        updateTimerDisplay();
+      }
+    }, 1000);
+  }
+
+  function updateTimerDisplay() {
+    timerDisplay.textContent = formatTime(timerSeconds);
+  }
+
+  function togglePause() {
+    isPaused = !isPaused;
+    btnPause.textContent = isPaused ? 'Continuar' : 'Pausar';
+    renderBoard();
+  }
+
+  function shuffleSolution() {
+    let nums = [1,2,3,4,5,6,7,8,9].sort(() => Math.random() - 0.5);
+    let map = {};
+    for(let i=0; i<9; i++) map[i+1] = nums[i];
+
+    return baseSolution.map(row => row.map(val => map[val]));
+  }
+
+  function generatePuzzle() {
+    currentSolution = shuffleSolution();
+    
+    let removalCount = 30; // fácil
+    if (difficultyEl.value === 'medium') removalCount = 42;
+    if (difficultyEl.value === 'hard') removalCount = 54;
+
+    initialBoard = currentSolution.map(row => [...row]);
+    
+    let removed = 0;
+    while (removed < removalCount) {
+      let r = Math.floor(Math.random() * 9);
+      let c = Math.floor(Math.random() * 9);
+      if (initialBoard[r][c] !== 0) {
+        initialBoard[r][c] = 0;
+        removed++;
+      }
+    }
+
+    hintsUsed = 0;
+    hintCountEl.textContent = hintsUsed;
+    startTimer();
+    resetGame();
+  }
+
+  function resetGame() {
+    userBoard = initialBoard.map(row => [...row]);
+    errorCount = 0;
+    selectedCell = null;
+    statusEl.textContent = '';
+    updateErrorDisplay();
+    renderBoard();
+  }
+
+  function updateErrorDisplay() {
+    if (limitToggleEl.checked) {
+      errorCounterEl.style.display = 'inline';
+      errorCounterEl.textContent = `Erros: ${errorCount}/3`;
+    } else {
+      errorCounterEl.style.display = 'none';
+    }
+  }
+
+  function updateNumpadVisibility() {
+    const counts = Array(10).fill(0);
+
+    for (let r = 0; r < 9; r++) {
+      for (let c = 0; c < 9; c++) {
+        const val = userBoard[r][c];
+        if (val !== 0 && val === currentSolution[r][c]) {
+          counts[val]++;
+        }
+      }
+    }
+
+    for (let n = 1; n <= 9; n++) {
+      const btn = document.getElementById(`num-btn-${n}`);
+      if (btn) {
+        if (counts[n] >= 9) {
+          btn.classList.add('completed');
+        } else {
+          btn.classList.remove('completed');
+        }
+      }
+    }
+  }
+
+  function isBlockCompleted(blockRow, blockCol) {
+    for (let r = blockRow * 3; r < blockRow * 3 + 3; r++) {
+      for (let c = blockCol * 3; c < blockCol * 3 + 3; c++) {
+        if (userBoard[r][c] !== currentSolution[r][c]) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  function renderBoard() {
+    boardEl.innerHTML = '';
+
+    if (isPaused) {
+      const overlay = document.createElement('div');
+      overlay.className = 'board-overlay';
+      overlay.textContent = 'Jogo Pausado ⏸️';
+      boardEl.appendChild(overlay);
+      return;
+    }
+
+    let highlightedVal = null;
+    if (selectedCell) {
+      highlightedVal = userBoard[selectedCell.r][selectedCell.c];
+    }
+
+    for (let r = 0; r < 9; r++) {
+      for (let c = 0; c < 9; c++) {
+        const cell = document.createElement('div');
+        cell.classList.add('cell');
+
+        const val = userBoard[r][c];
+        const isGiven = initialBoard[r][c] !== 0;
+
+        // Bloco 3x3 completo
+        const blockR = Math.floor(r / 3);
+        const blockC = Math.floor(c / 3);
+        if (isBlockCompleted(blockR, blockC)) {
+          cell.classList.add('block-completed');
+        }
+
+        // Destaque de Linha e Coluna
+        if (selectedCell && (selectedCell.r === r || selectedCell.c === c)) {
+          cell.classList.add('line-highlight');
+        }
+
+        if (val !== 0) {
+          cell.textContent = val;
+          if (isGiven) {
+            cell.classList.add('given');
+          } else {
+            if (val === currentSolution[r][c]) {
+              cell.classList.add('correct');
+            } else {
+              cell.classList.add('incorrect');
+            }
+          }
+
+          if (highlightedVal && val === highlightedVal) {
+            cell.classList.add('highlighted');
+          }
+        }
+
+        if (selectedCell && selectedCell.r === r && selectedCell.c === c) {
+          cell.classList.add('selected');
+        }
+
+        cell.addEventListener('click', () => {
+          selectedCell = { r, c };
+          renderBoard();
+        });
+
+        boardEl.appendChild(cell);
+      }
+    }
+
+    updateNumpadVisibility();
+  }
+
+  function inputNumber(num) {
+    if (!selectedCell || isPaused) return;
+    const { r, c } = selectedCell;
+
+    if (initialBoard[r][c] !== 0) return;
+
+    if (num === 0) {
+      userBoard[r][c] = 0;
+      renderBoard();
+      return;
+    }
+
+    if (num !== currentSolution[r][c]) {
+      errorCount++;
+      updateErrorDisplay();
+
+      if (limitToggleEl.checked && errorCount >= 3) {
+        statusEl.textContent = '3 erros atingidos! Reiniciando fase...';
+        addHistoryRecord('Derrota (3 erros)');
+        setTimeout(resetGame, 1500);
+        return;
+      }
+    }
+
+    userBoard[r][c] = num;
+    renderBoard();
+    checkWin();
+  }
+
+  function giveHint() {
+    if (isPaused) return;
+    
+    if (selectedCell) {
+      const { r, c } = selectedCell;
+      if (initialBoard[r][c] === 0 && userBoard[r][c] !== currentSolution[r][c]) {
+        userBoard[r][c] = currentSolution[r][c];
+        hintsUsed++;
+        hintCountEl.textContent = hintsUsed;
+        renderBoard();
+        checkWin();
+        return;
+      }
+    }
+
+    for (let r = 0; r < 9; r++) {
+      for (let c = 0; c < 9; c++) {
+        if (initialBoard[r][c] === 0 && userBoard[r][c] !== currentSolution[r][c]) {
+          userBoard[r][c] = currentSolution[r][c];
+          selectedCell = { r, c };
+          hintsUsed++;
+          hintCountEl.textContent = hintsUsed;
+          renderBoard();
+          checkWin();
+          return;
+        }
+      }
+    }
+  }
+
+  function checkWin() {
+    for (let r = 0; r < 9; r++) {
+      for (let c = 0; c < 9; c++) {
+        if (userBoard[r][c] !== currentSolution[r][c]) return;
+      }
+    }
+    clearInterval(timerInterval);
+    saveBestTime(difficultyEl.value, timerSeconds, errorCount, hintsUsed);
+    addHistoryRecord('Vitória');
+    showWinModal();
+  }
+
+  function showWinModal() {
+    document.getElementById('win-time').textContent = timerDisplay.textContent;
+    document.getElementById('win-errors').textContent = errorCount;
+    document.getElementById('win-hints').textContent = hintsUsed;
+    document.getElementById('win-modal').style.display = 'flex';
+  }
+
+  function closeWinModal() {
+    document.getElementById('win-modal').style.display = 'none';
+    generatePuzzle();
+  }
+
+  // --- Melhores Tempos ---
+  function loadBestTimes() {
+    ['easy', 'medium', 'hard'].forEach(diff => {
+      const time = localStorage.getItem(`sudoku_best_${diff}`);
+      const errors = localStorage.getItem(`sudoku_errors_${diff}`);
+      const hints = localStorage.getItem(`sudoku_hints_${diff}`);
+
+      const timeEl = document.getElementById(`best-${diff}`);
+      const detailsEl = document.getElementById(`details-${diff}`);
+
+      if (time) {
+        timeEl.textContent = formatTime(parseInt(time));
+        detailsEl.textContent = `❌ ${errors || 0} erro(s) | 💡 ${hints || 0} dica(s)`;
+      } else {
+        timeEl.textContent = '--:--';
+        detailsEl.textContent = 'Sem registros';
+      }
+    });
+  }
+
+  function saveBestTime(difficulty, timeSeconds, errors, hints) {
+    const keyTime = `sudoku_best_${difficulty}`;
+    const keyErrors = `sudoku_errors_${difficulty}`;
+    const keyHints = `sudoku_hints_${difficulty}`;
+
+    const currentBest = localStorage.getItem(keyTime);
+
+    if (!currentBest || timeSeconds < parseInt(currentBest)) {
+      localStorage.setItem(keyTime, timeSeconds);
+      localStorage.setItem(keyErrors, errors);
+      localStorage.setItem(keyHints, hints);
+      loadBestTimes();
+    }
+  }
+
+  // --- Histórico de Últimas Partidas ---
+  function addHistoryRecord(result) {
+    const history = JSON.parse(localStorage.getItem('sudoku_history') || '[]');
+    
+    const diffNames = { easy: 'Fácil', medium: 'Médio', hard: 'Difícil' };
+
+    const newRecord = {
+      difficulty: diffNames[difficultyEl.value],
+      time: timerDisplay.textContent,
+      result: result,
+      errors: errorCount,
+      hints: hintsUsed
+    };
+
+    history.unshift(newRecord); // adiciona no início
+    if (history.length > 5) history.pop(); // mantém apenas as últimas 5
+
+    localStorage.setItem('sudoku_history', JSON.stringify(history));
+    renderHistory();
+  }
+
+  function renderHistory() {
+    const history = JSON.parse(localStorage.getItem('sudoku_history') || '[]');
+    const historyBody = document.getElementById('history-body');
+
+    if (history.length === 0) {
+      historyBody.innerHTML = '<tr><td colspan="5">Nenhum jogo registrado ainda.</td></tr>';
+      return;
+    }
+
+    historyBody.innerHTML = history.map(item => `
+      <tr>
+        <td><strong>${item.difficulty}</strong></td>
+        <td>${item.time}</td>
+        <td class="${item.result.includes('Vitória') ? 'status-win' : 'status-fail'}">${item.result}</td>
+        <td>${item.errors}</td>
+        <td>${item.hints}</td>
+      </tr>
+    `).join('');
+  }
+
+  function clearRecords() {
+    ['easy', 'medium', 'hard'].forEach(diff => {
+      localStorage.removeItem(`sudoku_best_${diff}`);
+      localStorage.removeItem(`sudoku_errors_${diff}`);
+      localStorage.removeItem(`sudoku_hints_${diff}`);
+    });
+    localStorage.removeItem('sudoku_history');
+    loadBestTimes();
+    renderHistory();
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key >= '1' && e.key <= '9') inputNumber(parseInt(e.key));
+    if (e.key === 'Backspace' || e.key === 'Delete') inputNumber(0);
+  });
+
+  document.getElementById('btn-new').addEventListener('click', () => {
+    addHistoryRecord('Abandono');
+    generatePuzzle();
+  });
+  document.getElementById('btn-reset').addEventListener('click', resetGame);
+  document.getElementById('btn-pause').addEventListener('click', togglePause);
+  document.getElementById('btn-hint').addEventListener('click', giveHint);
+  document.getElementById('btn-clear-records').addEventListener('click', clearRecords);
+  difficultyEl.addEventListener('change', generatePuzzle);
+  limitToggleEl.addEventListener('change', updateErrorDisplay);
+
+  loadBestTimes();
+  renderHistory();
+  generatePuzzle();
+</script>
+</body>
+</html>
