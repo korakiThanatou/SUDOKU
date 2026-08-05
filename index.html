@@ -12,7 +12,8 @@
       --light-border: #ccc;
       --correct-color: #2e7d32;
       --error-color: #c62828;
-      --selected-bg: #e3f2fd;
+      --selected-bg: #bbdefb;
+      --highlight-match-bg: #e1f5fe; /* Destaque para números iguais */
       --primary-color: #1976d2;
       --hint-color: #f57c00;
     }
@@ -185,7 +186,6 @@
     .cell.given {
       background-color: #f0f0f0;
       color: #000;
-      cursor: not-allowed;
     }
 
     .cell.correct {
@@ -198,9 +198,13 @@
       background-color: #ffebee;
     }
 
+    .cell.highlighted {
+      background-color: var(--highlight-match-bg);
+    }
+
     .cell.selected {
       outline: 2px solid var(--primary-color);
-      background-color: var(--selected-bg);
+      background-color: var(--selected-bg) !important;
     }
 
     .board-overlay {
@@ -234,6 +238,12 @@
     .numpad button.erase {
       background-color: #ffcdd2;
       color: #b71c1c;
+    }
+
+    /* Estilo para botão escondido após 9 acertos */
+    .numpad button.completed {
+      visibility: hidden;
+      pointer-events: none;
     }
 
     /* Placar Lateral */
@@ -318,15 +328,15 @@
     <div id="board" class="sudoku-board"></div>
 
     <div class="numpad">
-      <button onclick="inputNumber(1)">1</button>
-      <button onclick="inputNumber(2)">2</button>
-      <button onclick="inputNumber(3)">3</button>
-      <button onclick="inputNumber(4)">4</button>
-      <button onclick="inputNumber(5)">5</button>
-      <button onclick="inputNumber(6)">6</button>
-      <button onclick="inputNumber(7)">7</button>
-      <button onclick="inputNumber(8)">8</button>
-      <button onclick="inputNumber(9)">9</button>
+      <button id="num-btn-1" onclick="inputNumber(1)">1</button>
+      <button id="num-btn-2" onclick="inputNumber(2)">2</button>
+      <button id="num-btn-3" onclick="inputNumber(3)">3</button>
+      <button id="num-btn-4" onclick="inputNumber(4)">4</button>
+      <button id="num-btn-5" onclick="inputNumber(5)">5</button>
+      <button id="num-btn-6" onclick="inputNumber(6)">6</button>
+      <button id="num-btn-7" onclick="inputNumber(7)">7</button>
+      <button id="num-btn-8" onclick="inputNumber(8)">8</button>
+      <button id="num-btn-9" onclick="inputNumber(9)">9</button>
       <button class="erase" onclick="inputNumber(0)">⌫</button>
     </div>
   </div>
@@ -467,6 +477,31 @@
     }
   }
 
+  function updateNumpadVisibility() {
+    // Contar quantas ocorrências corretas existem para cada número (1 a 9)
+    const counts = Array(10).fill(0);
+
+    for (let r = 0; r < 9; r++) {
+      for (let c = 0; c < 9; c++) {
+        const val = userBoard[r][c];
+        if (val !== 0 && val === currentSolution[r][c]) {
+          counts[val]++;
+        }
+      }
+    }
+
+    for (let n = 1; n <= 9; n++) {
+      const btn = document.getElementById(`num-btn-${n}`);
+      if (btn) {
+        if (counts[n] >= 9) {
+          btn.classList.add('completed');
+        } else {
+          btn.classList.remove('completed');
+        }
+      }
+    }
+  }
+
   function renderBoard() {
     boardEl.innerHTML = '';
 
@@ -476,6 +511,12 @@
       overlay.textContent = 'Jogo Pausado ⏸️';
       boardEl.appendChild(overlay);
       return;
+    }
+
+    // Número a ser destacado em todas as células iguais
+    let highlightedVal = null;
+    if (selectedCell) {
+      highlightedVal = userBoard[selectedCell.r][selectedCell.c];
     }
 
     for (let r = 0; r < 9; r++) {
@@ -497,6 +538,11 @@
               cell.classList.add('incorrect');
             }
           }
+
+          // Destaque para todas as células com o mesmo número do selecionado
+          if (highlightedVal && val === highlightedVal) {
+            cell.classList.add('highlighted');
+          }
         }
 
         if (selectedCell && selectedCell.r === r && selectedCell.c === c) {
@@ -504,15 +550,15 @@
         }
 
         cell.addEventListener('click', () => {
-          if (!isGiven) {
-            selectedCell = { r, c };
-            renderBoard();
-          }
+          selectedCell = { r, c };
+          renderBoard();
         });
 
         boardEl.appendChild(cell);
       }
     }
+
+    updateNumpadVisibility();
   }
 
   function inputNumber(num) {
