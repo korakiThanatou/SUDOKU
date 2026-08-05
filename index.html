@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sudoku Interativo com Melhores Tempos</title>
+  <title>Sudoku Interativo Completo</title>
   <style>
     :root {
       --bg-color: #f4f7f6;
@@ -13,13 +13,15 @@
       --correct-color: #2e7d32;
       --error-color: #c62828;
       --selected-bg: #bbdefb;
-      --highlight-match-bg: #e1f5fe; /* Destaque para números iguais */
+      --highlight-match-bg: #e1f5fe;
+      --highlight-line-bg: #f0f0f0;
       --primary-color: #1976d2;
       --hint-color: #f57c00;
+      --block-completed-bg: #e0e0e0;
     }
 
     body {
-      font-family: Arial, sans-serif;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background-color: var(--bg-color);
       display: flex;
       justify-content: center;
@@ -28,13 +30,47 @@
       margin: 0;
       padding: 20px;
       box-sizing: border-box;
+      position: relative;
+    }
+
+    /* Botão do Easter Egg no canto superior direito */
+    .easter-egg-btn {
+      position: fixed;
+      top: 15px;
+      right: 15px;
+      background: rgba(255, 255, 255, 0.8);
+      border: 1px solid var(--light-border);
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      transition: transform 0.2s, background-color 0.2s;
+      z-index: 90;
+    }
+
+    .easter-egg-btn:hover {
+      transform: scale(1.15);
+      background: #fff0f3;
     }
 
     .main-wrapper {
       display: flex;
-      flex-wrap: wrap;
+      flex-direction: column;
+      align-items: center;
       gap: 20px;
       max-width: 800px;
+      width: 100%;
+    }
+
+    .top-section {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
       width: 100%;
       justify-content: center;
     }
@@ -47,6 +83,7 @@
       flex: 1 1 420px;
       max-width: 480px;
       box-sizing: border-box;
+      position: relative;
     }
 
     .sidebar {
@@ -59,13 +96,22 @@
       box-sizing: border-box;
     }
 
-    h1, h2 {
+    .bottom-section {
+      background: var(--card-bg);
+      padding: 20px 24px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    h1, h2, h3 {
       text-align: center;
       margin-top: 0;
       color: #333;
     }
 
-    h2 {
+    h2, h3 {
       font-size: 18px;
       border-bottom: 2px solid var(--primary-color);
       padding-bottom: 8px;
@@ -173,6 +219,7 @@
       user-select: none;
       cursor: pointer;
       background: #fff;
+      transition: background-color 0.15s;
     }
 
     .cell:nth-child(3n) { border-right: 2px solid var(--border-color); }
@@ -183,28 +230,35 @@
       border-bottom: 2px solid var(--border-color);
     }
 
+    .cell.block-completed {
+      background-color: var(--block-completed-bg);
+    }
+
+    .cell.line-highlight {
+      background-color: var(--highlight-line-bg);
+    }
+
     .cell.given {
-      background-color: #f0f0f0;
       color: #000;
     }
 
     .cell.correct {
       color: var(--correct-color);
-      background-color: #e8f5e9;
     }
 
     .cell.incorrect {
       color: var(--error-color);
-      background-color: #ffebee;
+      background-color: #ffebee !important;
     }
 
     .cell.highlighted {
-      background-color: var(--highlight-match-bg);
+      background-color: var(--highlight-match-bg) !important;
     }
 
     .cell.selected {
       outline: 2px solid var(--primary-color);
       background-color: var(--selected-bg) !important;
+      z-index: 1;
     }
 
     .board-overlay {
@@ -240,13 +294,12 @@
       color: #b71c1c;
     }
 
-    /* Estilo para botão escondido após 9 acertos */
     .numpad button.completed {
       visibility: hidden;
       pointer-events: none;
     }
 
-    /* Placar Lateral */
+    /* Sidebar / Recordes */
     .records-list {
       list-style: none;
       padding: 0;
@@ -257,7 +310,7 @@
       background: #f8f9fa;
       border: 1px solid var(--light-border);
       border-radius: 8px;
-      padding: 12px;
+      padding: 10px 12px;
       margin-bottom: 12px;
     }
 
@@ -274,6 +327,12 @@
       color: #333;
     }
 
+    .record-details {
+      font-size: 11px;
+      color: #666;
+      margin-top: 4px;
+    }
+
     .btn-clear-records {
       width: 100%;
       margin-top: 10px;
@@ -284,81 +343,224 @@
       border-radius: 6px;
       font-size: 12px;
     }
+
+    /* Tabela de Últimos Jogos */
+    .history-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      margin-top: 10px;
+    }
+
+    .history-table th, .history-table td {
+      border: 1px solid var(--light-border);
+      padding: 8px;
+      text-align: center;
+    }
+
+    .history-table th {
+      background-color: #f0f4f8;
+      color: #333;
+    }
+
+    .history-table tr:nth-child(even) {
+      background-color: #fafafa;
+    }
+
+    .status-win {
+      color: var(--correct-color);
+      font-weight: bold;
+    }
+
+    .status-fail {
+      color: var(--error-color);
+      font-weight: bold;
+    }
+
+    /* Modal Generico (Vitória e Easter Egg) */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.6);
+      z-index: 100;
+      justify-content: center;
+      align-items: center;
+      animation: fadeIn 0.3s forwards;
+    }
+
+    .modal-content {
+      background: #fff;
+      padding: 30px;
+      border-radius: 16px;
+      text-align: center;
+      max-width: 360px;
+      width: 90%;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .modal h2 {
+      font-size: 24px;
+      color: #2e7d32;
+      border-bottom: none;
+      margin-bottom: 10px;
+    }
+
+    .love-card {
+      background: #fff0f5;
+      border: 1px solid #ffb6c1;
+      padding: 20px;
+      border-radius: 12px;
+      font-size: 20px;
+      font-weight: bold;
+      color: #d81b60;
+      margin: 15px 0;
+    }
+
+    .win-stats {
+      background: #f0f7f4;
+      border-radius: 10px;
+      padding: 15px;
+      margin: 20px 0;
+      text-align: left;
+      font-size: 14px;
+    }
+
+    .win-stats div {
+      margin-bottom: 6px;
+    }
+
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes popIn { from { transform: scale(0.8); } to { transform: scale(1); } }
   </style>
 </head>
 <body>
 
+<!-- Botão do Easter Egg -->
+<button class="easter-egg-btn" id="btn-easter-egg" title="Um recadinho...">💖</button>
+
 <div class="main-wrapper">
-  <!-- Painel do Jogo -->
-  <div class="container">
-    <h1>Sudoku</h1>
+  <div class="top-section">
+    <!-- Painel Principal do Jogo -->
+    <div class="container">
+      <h1>Sudoku</h1>
 
-    <div class="hud-bar">
-      <div class="timer-container">
-        ⏱️ <span id="timer-display">00:00</span>
-        <button class="btn-hud" id="btn-pause">Pausar</button>
+      <div class="hud-bar">
+        <div class="timer-container">
+          ⏱️ <span id="timer-display">00:00</span>
+          <button class="btn-hud" id="btn-pause">Pausar</button>
+        </div>
+        <button class="btn-hud btn-hint" id="btn-hint">💡 Dica (<span id="hint-count">0</span>)</button>
       </div>
-      <button class="btn-hud btn-hint" id="btn-hint">💡 Dica (<span id="hint-count">0</span>)</button>
+
+      <div class="controls">
+        <div class="row">
+          <label>Dificuldade:
+            <select id="difficulty">
+              <option value="easy">Fácil</option>
+              <option value="medium" selected>Médio</option>
+              <option value="hard">Difícil</option>
+            </select>
+          </label>
+          <button class="action-btn" id="btn-new">Criar Outro</button>
+          <button class="action-btn" id="btn-reset">Reiniciar</button>
+        </div>
+
+        <div class="row">
+          <label class="toggle-label">
+            <input type="checkbox" id="limit-errors-toggle" checked>
+            Reiniciar após 3 erros
+          </label>
+          <span id="error-counter">Erros: 0/3</span>
+        </div>
+      </div>
+
+      <div class="status" id="status-message"></div>
+
+      <div id="board" class="sudoku-board"></div>
+
+      <div class="numpad">
+        <button id="num-btn-1" onclick="inputNumber(1)">1</button>
+        <button id="num-btn-2" onclick="inputNumber(2)">2</button>
+        <button id="num-btn-3" onclick="inputNumber(3)">3</button>
+        <button id="num-btn-4" onclick="inputNumber(4)">4</button>
+        <button id="num-btn-5" onclick="inputNumber(5)">5</button>
+        <button id="num-btn-6" onclick="inputNumber(6)">6</button>
+        <button id="num-btn-7" onclick="inputNumber(7)">7</button>
+        <button id="num-btn-8" onclick="inputNumber(8)">8</button>
+        <button id="num-btn-9" onclick="inputNumber(9)">9</button>
+        <button class="erase" onclick="inputNumber(0)">⌫</button>
+      </div>
     </div>
 
-    <div class="controls">
-      <div class="row">
-        <label>Dificuldade:
-          <select id="difficulty">
-            <option value="easy">Fácil</option>
-            <option value="medium" selected>Médio</option>
-            <option value="hard">Difícil</option>
-          </select>
-        </label>
-        <button class="action-btn" id="btn-new">Criar Outro</button>
-        <button class="action-btn" id="btn-reset">Reiniciar</button>
+    <!-- Barra Lateral: Recordes -->
+    <div class="sidebar">
+      <h2>🏆 Melhores Tempos</h2>
+      <div class="records-list">
+        <div class="record-item">
+          <div class="record-title">🟢 Fácil</div>
+          <div class="record-time" id="best-easy">--:--</div>
+          <div class="record-details" id="details-easy">---</div>
+        </div>
+        <div class="record-item">
+          <div class="record-title">🟡 Médio</div>
+          <div class="record-time" id="best-medium">--:--</div>
+          <div class="record-details" id="details-medium">---</div>
+        </div>
+        <div class="record-item">
+          <div class="record-title">🔴 Difícil</div>
+          <div class="record-time" id="best-hard">--:--</div>
+          <div class="record-details" id="details-hard">---</div>
+        </div>
       </div>
-
-      <div class="row">
-        <label class="toggle-label">
-          <input type="checkbox" id="limit-errors-toggle" checked>
-          Reiniciar após 3 erros
-        </label>
-        <span id="error-counter">Erros: 0/3</span>
-      </div>
-    </div>
-
-    <div class="status" id="status-message"></div>
-
-    <div id="board" class="sudoku-board"></div>
-
-    <div class="numpad">
-      <button id="num-btn-1" onclick="inputNumber(1)">1</button>
-      <button id="num-btn-2" onclick="inputNumber(2)">2</button>
-      <button id="num-btn-3" onclick="inputNumber(3)">3</button>
-      <button id="num-btn-4" onclick="inputNumber(4)">4</button>
-      <button id="num-btn-5" onclick="inputNumber(5)">5</button>
-      <button id="num-btn-6" onclick="inputNumber(6)">6</button>
-      <button id="num-btn-7" onclick="inputNumber(7)">7</button>
-      <button id="num-btn-8" onclick="inputNumber(8)">8</button>
-      <button id="num-btn-9" onclick="inputNumber(9)">9</button>
-      <button class="erase" onclick="inputNumber(0)">⌫</button>
+      <button class="btn-clear-records" id="btn-clear-records">Limpar Recordes</button>
     </div>
   </div>
 
-  <!-- Barra Lateral: Melhores Tempos -->
-  <div class="sidebar">
-    <h2>🏆 Melhores Tempos</h2>
-    <div class="records-list">
-      <div class="record-item">
-        <div class="record-title">🟢 Fácil</div>
-        <div class="record-time" id="best-easy">--:--</div>
-      </div>
-      <div class="record-item">
-        <div class="record-title">🟡 Médio</div>
-        <div class="record-time" id="best-medium">--:--</div>
-      </div>
-      <div class="record-item">
-        <div class="record-title">🔴 Difícil</div>
-        <div class="record-time" id="best-hard">--:--</div>
-      </div>
+  <!-- Tabela de Últimas Partidas Jogadas -->
+  <div class="bottom-section">
+    <h3>📜 Histórico de Últimas Partidas</h3>
+    <table class="history-table">
+      <thead>
+        <tr>
+          <th>Dificuldade</th>
+          <th>Tempo</th>
+          <th>Resultado</th>
+          <th>Erros</th>
+          <th>Dicas</th>
+        </tr>
+      </thead>
+      <tbody id="history-body">
+        <tr>
+          <td colspan="5">Nenhum jogo registrado ainda.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal de Vitória -->
+<div class="modal" id="win-modal">
+  <div class="modal-content">
+    <h2>🎉 VITÓRIA! 🎉</h2>
+    <p>Você completou o Sudoku com sucesso!</p>
+    <div class="win-stats">
+      <div>⏱️ <strong>Tempo:</strong> <span id="win-time">--:--</span></div>
+      <div>❌ <strong>Erros cometidos:</strong> <span id="win-errors">0</span></div>
+      <div>💡 <strong>Dicas usadas:</strong> <span id="win-hints">0</span></div>
     </div>
-    <button class="btn-clear-records" id="btn-clear-records">Limpar Recordes</button>
+    <button class="action-btn" style="padding: 10px 20px; font-size: 16px;" onclick="closeWinModal()">Jogar Novamente</button>
+  </div>
+</div>
+
+<!-- Modal do Easter Egg -->
+<div class="modal" id="easter-egg-modal">
+  <div class="modal-content">
+    <div class="love-card">
+      Eu te amo, Benj &lt;3
+    </div>
+    <button class="action-btn" style="padding: 8px 18px; font-size: 14px;" onclick="closeEasterEggModal()">fofo ✨</button>
   </div>
 </div>
 
@@ -478,7 +680,6 @@
   }
 
   function updateNumpadVisibility() {
-    // Contar quantas ocorrências corretas existem para cada número (1 a 9)
     const counts = Array(10).fill(0);
 
     for (let r = 0; r < 9; r++) {
@@ -502,6 +703,17 @@
     }
   }
 
+  function isBlockCompleted(blockRow, blockCol) {
+    for (let r = blockRow * 3; r < blockRow * 3 + 3; r++) {
+      for (let c = blockCol * 3; c < blockCol * 3 + 3; c++) {
+        if (userBoard[r][c] !== currentSolution[r][c]) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
   function renderBoard() {
     boardEl.innerHTML = '';
 
@@ -513,7 +725,6 @@
       return;
     }
 
-    // Número a ser destacado em todas as células iguais
     let highlightedVal = null;
     if (selectedCell) {
       highlightedVal = userBoard[selectedCell.r][selectedCell.c];
@@ -527,6 +738,18 @@
         const val = userBoard[r][c];
         const isGiven = initialBoard[r][c] !== 0;
 
+        // Bloco 3x3 completo
+        const blockR = Math.floor(r / 3);
+        const blockC = Math.floor(c / 3);
+        if (isBlockCompleted(blockR, blockC)) {
+          cell.classList.add('block-completed');
+        }
+
+        // Destaque de Linha e Coluna
+        if (selectedCell && (selectedCell.r === r || selectedCell.c === c)) {
+          cell.classList.add('line-highlight');
+        }
+
         if (val !== 0) {
           cell.textContent = val;
           if (isGiven) {
@@ -539,7 +762,6 @@
             }
           }
 
-          // Destaque para todas as células com o mesmo número do selecionado
           if (highlightedVal && val === highlightedVal) {
             cell.classList.add('highlighted');
           }
@@ -579,6 +801,7 @@
 
       if (limitToggleEl.checked && errorCount >= 3) {
         statusEl.textContent = '3 erros atingidos! Reiniciando fase...';
+        addHistoryRecord('Derrota (3 erros)');
         setTimeout(resetGame, 1500);
         return;
       }
@@ -626,39 +849,117 @@
       }
     }
     clearInterval(timerInterval);
-    statusEl.style.color = '#2e7d32';
-    statusEl.textContent = `Parabéns! Você venceu em ${timerDisplay.textContent}!`;
-    
-    saveBestTime(difficultyEl.value, timerSeconds);
+    saveBestTime(difficultyEl.value, timerSeconds, errorCount, hintsUsed);
+    addHistoryRecord('Vitória');
+    showWinModal();
   }
 
-  // --- Melhores Tempos (LocalStorage) ---
+  function showWinModal() {
+    document.getElementById('win-time').textContent = timerDisplay.textContent;
+    document.getElementById('win-errors').textContent = errorCount;
+    document.getElementById('win-hints').textContent = hintsUsed;
+    document.getElementById('win-modal').style.display = 'flex';
+  }
+
+  function closeWinModal() {
+    document.getElementById('win-modal').style.display = 'none';
+    generatePuzzle();
+  }
+
+  // --- Functions do Easter Egg ---
+  function openEasterEggModal() {
+    document.getElementById('easter-egg-modal').style.display = 'flex';
+  }
+
+  function closeEasterEggModal() {
+    document.getElementById('easter-egg-modal').style.display = 'none';
+  }
+
+  // --- Melhores Tempos ---
   function loadBestTimes() {
-    const easy = localStorage.getItem('sudoku_best_easy');
-    const medium = localStorage.getItem('sudoku_best_medium');
-    const hard = localStorage.getItem('sudoku_best_hard');
+    ['easy', 'medium', 'hard'].forEach(diff => {
+      const time = localStorage.getItem(`sudoku_best_${diff}`);
+      const errors = localStorage.getItem(`sudoku_errors_${diff}`);
+      const hints = localStorage.getItem(`sudoku_hints_${diff}`);
 
-    document.getElementById('best-easy').textContent = easy ? formatTime(parseInt(easy)) : '--:--';
-    document.getElementById('best-medium').textContent = medium ? formatTime(parseInt(medium)) : '--:--';
-    document.getElementById('best-hard').textContent = hard ? formatTime(parseInt(hard)) : '--:--';
+      const timeEl = document.getElementById(`best-${diff}`);
+      const detailsEl = document.getElementById(`details-${diff}`);
+
+      if (time) {
+        timeEl.textContent = formatTime(parseInt(time));
+        detailsEl.textContent = `❌ ${errors || 0} erro(s) | 💡 ${hints || 0} dica(s)`;
+      } else {
+        timeEl.textContent = '--:--';
+        detailsEl.textContent = 'Sem registros';
+      }
+    });
   }
 
-  function saveBestTime(difficulty, timeSeconds) {
-    const key = `sudoku_best_${difficulty}`;
-    const currentBest = localStorage.getItem(key);
+  function saveBestTime(difficulty, timeSeconds, errors, hints) {
+    const keyTime = `sudoku_best_${difficulty}`;
+    const keyErrors = `sudoku_errors_${difficulty}`;
+    const keyHints = `sudoku_hints_${difficulty}`;
+
+    const currentBest = localStorage.getItem(keyTime);
 
     if (!currentBest || timeSeconds < parseInt(currentBest)) {
-      localStorage.setItem(key, timeSeconds);
+      localStorage.setItem(keyTime, timeSeconds);
+      localStorage.setItem(keyErrors, errors);
+      localStorage.setItem(keyHints, hints);
       loadBestTimes();
-      statusEl.textContent += ' 🎉 Novo Recorde!';
     }
   }
 
+  // --- Histórico de Últimas Partidas ---
+  function addHistoryRecord(result) {
+    const history = JSON.parse(localStorage.getItem('sudoku_history') || '[]');
+    
+    const diffNames = { easy: 'Fácil', medium: 'Médio', hard: 'Difícil' };
+
+    const newRecord = {
+      difficulty: diffNames[difficultyEl.value],
+      time: timerDisplay.textContent,
+      result: result,
+      errors: errorCount,
+      hints: hintsUsed
+    };
+
+    history.unshift(newRecord);
+    if (history.length > 5) history.pop();
+
+    localStorage.setItem('sudoku_history', JSON.stringify(history));
+    renderHistory();
+  }
+
+  function renderHistory() {
+    const history = JSON.parse(localStorage.getItem('sudoku_history') || '[]');
+    const historyBody = document.getElementById('history-body');
+
+    if (history.length === 0) {
+      historyBody.innerHTML = '<tr><td colspan="5">Nenhum jogo registrado ainda.</td></tr>';
+      return;
+    }
+
+    historyBody.innerHTML = history.map(item => `
+      <tr>
+        <td><strong>${item.difficulty}</strong></td>
+        <td>${item.time}</td>
+        <td class="${item.result.includes('Vitória') ? 'status-win' : 'status-fail'}">${item.result}</td>
+        <td>${item.errors}</td>
+        <td>${item.hints}</td>
+      </tr>
+    `).join('');
+  }
+
   function clearRecords() {
-    localStorage.removeItem('sudoku_best_easy');
-    localStorage.removeItem('sudoku_best_medium');
-    localStorage.removeItem('sudoku_best_hard');
+    ['easy', 'medium', 'hard'].forEach(diff => {
+      localStorage.removeItem(`sudoku_best_${diff}`);
+      localStorage.removeItem(`sudoku_errors_${diff}`);
+      localStorage.removeItem(`sudoku_hints_${diff}`);
+    });
+    localStorage.removeItem('sudoku_history');
     loadBestTimes();
+    renderHistory();
   }
 
   document.addEventListener('keydown', (e) => {
@@ -666,15 +967,20 @@
     if (e.key === 'Backspace' || e.key === 'Delete') inputNumber(0);
   });
 
-  document.getElementById('btn-new').addEventListener('click', generatePuzzle);
+  document.getElementById('btn-new').addEventListener('click', () => {
+    addHistoryRecord('Abandono');
+    generatePuzzle();
+  });
   document.getElementById('btn-reset').addEventListener('click', resetGame);
   document.getElementById('btn-pause').addEventListener('click', togglePause);
   document.getElementById('btn-hint').addEventListener('click', giveHint);
   document.getElementById('btn-clear-records').addEventListener('click', clearRecords);
+  document.getElementById('btn-easter-egg').addEventListener('click', openEasterEggModal);
   difficultyEl.addEventListener('change', generatePuzzle);
   limitToggleEl.addEventListener('change', updateErrorDisplay);
 
   loadBestTimes();
+  renderHistory();
   generatePuzzle();
 </script>
 </body>
