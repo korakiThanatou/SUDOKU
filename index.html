@@ -72,6 +72,35 @@
       color: #fff;
     }
 
+    /* Novas Skins Customizadas */
+    .sudoku-board.skin-emerald {
+      border-color: #059669 !important;
+      box-shadow: 0 0 15px rgba(5, 150, 105, 0.3);
+    }
+    .sudoku-board.skin-emerald .cell {
+      background: #022c22;
+      border-color: #065f46;
+      color: #34d399;
+    }
+    .sudoku-board.skin-emerald .cell.selected {
+      background: #047857 !important;
+      color: #fff;
+    }
+
+    .sudoku-board.skin-sunset {
+      border-color: #ea580c !important;
+      box-shadow: 0 0 15px rgba(234, 88, 12, 0.3);
+    }
+    .sudoku-board.skin-sunset .cell {
+      background: #431407;
+      border-color: #7c2d12;
+      color: #fb923c;
+    }
+    .sudoku-board.skin-sunset .cell.selected {
+      background: #c2410c !important;
+      color: #fff;
+    }
+
     * { box-sizing: border-box; }
 
     body {
@@ -79,8 +108,8 @@
       background-color: var(--bg-color);
       color: var(--text-color);
       display: flex;
-      justify-content: center;
-      align-items: flex-start;
+      flex-direction: column;
+      align-items: center;
       min-height: 100vh;
       margin: 0;
       padding: 16px;
@@ -98,7 +127,7 @@
     body.focus-mode .sidebar, body.focus-mode .bottom-section, body.focus-mode .hud-bar,
     body.focus-mode .controls, body.focus-mode h1, body.focus-mode .easter-egg-btn,
     body.focus-mode .theme-toggle-btn, body.focus-mode .settings-toggle-btn,
-    body.focus-mode .trophies-shelf, body.focus-mode .market-toggle-btn { display: none !important; }
+    body.focus-mode .trophies-shelf, body.focus-mode .market-toggle-btn, body.focus-mode footer { display: none !important; }
     body.focus-mode .exit-focus-btn { display: block !important; }
     body.focus-mode .main-wrapper { margin-top: 40px; }
     body.focus-mode .container { box-shadow: none; background: transparent; padding: 0; }
@@ -131,7 +160,7 @@
 
     .main-wrapper {
       display: flex; flex-direction: column; align-items: center; gap: 20px;
-      max-width: 900px; width: 100%; margin-top: 50px;
+      max-width: 900px; width: 100%; margin-top: 50px; flex: 1;
     }
 
     .top-section { display: flex; flex-wrap: wrap; gap: 20px; width: 100%; justify-content: center; }
@@ -204,14 +233,34 @@
     .market-body { padding: 20px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 12px; }
     .skin-market-card { background: var(--highlight-line-bg); border: 1px solid var(--light-border); padding: 14px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; }
 
-    /* Hierarquia Rigorosa de Modais (Config = 9999, Submodais do Admin = 11000) */
+    /* Rodapé com Copyright */
+    footer {
+      width: 100%;
+      text-align: center;
+      padding: 24px;
+      font-size: 13px;
+      color: var(--note-color);
+      border-top: 1px solid var(--light-border);
+      margin-top: 40px;
+      background: var(--card-bg);
+      box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.05);
+    }
+    footer a {
+      color: var(--primary-color);
+      text-decoration: none;
+      font-weight: bold;
+    }
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    /* Hierarquia Rigorosa de Modais */
     .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.65); backdrop-filter: blur(5px); z-index: 9999; justify-content: center; align-items: center; padding: 16px; opacity: 0; transition: opacity 0.25s ease; }
     .modal-overlay.active { display: flex; opacity: 1; }
     
     .modal-card { background: var(--card-bg); padding: 24px; border-radius: 20px; text-align: center; max-width: 400px; width: 100%; box-shadow: 0 20px 35px rgba(0, 0, 0, 0.4); border: 1px solid var(--light-border); transform: scale(0.9); transition: transform 0.25s ease; position: relative; z-index: 10000; }
     .modal-overlay.active .modal-card { transform: scale(1); }
 
-    /* Submodais que abrem a partir do Admin ganham prioridade absoluta */
     #admin-achievements-modal, #confirm-modal, #alert-modal {
       z-index: 11000 !important;
     }
@@ -259,9 +308,19 @@
 
     <div class="skin-market-card">
       <div>
-        <strong>Clássico</strong><br><small style="color: var(--note-color);">O visual original padrão</small>
+        <strong>Clássico</strong><br><small style="color: var(--note-color);">O visual original padrão (Grátis)</small>
       </div>
       <button class="action-btn" id="skin-btn-classic" onclick="selectSkin('classic')">Usar</button>
+    </div>
+
+    <div class="skin-market-card">
+      <div>
+        <strong>Esmeralda Minimal</strong><br><small style="color: var(--note-color);">Tons verdes limpos (Grátis)</small>
+      </div>
+      <div style="display: flex; gap: 6px;">
+        <button class="action-btn" style="background-color: #64748b;" onclick="previewSkin('emerald')">Preview</button>
+        <button class="action-btn" id="skin-btn-emerald" onclick="buyOrSelectSkin('emerald', 0)">Usar</button>
+      </div>
     </div>
 
     <div class="skin-market-card">
@@ -281,6 +340,16 @@
       <div style="display: flex; gap: 6px;">
         <button class="action-btn" style="background-color: #64748b;" onclick="previewSkin('retro')">Preview</button>
         <button class="action-btn" id="skin-btn-retro" onclick="buyOrSelectSkin('retro', 100)">Comprar</button>
+      </div>
+    </div>
+
+    <div class="skin-market-card">
+      <div>
+        <strong>Pôr do Sol VIP</strong><br><small style="color: var(--note-color);">Visual exclusivo premium (200 pts)</small>
+      </div>
+      <div style="display: flex; gap: 6px;">
+        <button class="action-btn" style="background-color: #64748b;" onclick="previewSkin('sunset')">Preview</button>
+        <button class="action-btn" id="skin-btn-sunset" onclick="buyOrSelectSkin('sunset', 200)">Comprar</button>
       </div>
     </div>
   </div>
@@ -382,6 +451,11 @@
     </table>
   </div>
 </div>
+
+<!-- Rodapé com Copyright e link para o GitHub solicitado -->
+<footer>
+  <p>&copy; 2026 Sudoku Pro. Todos os direitos reservados. Desenvolvido por <a href="https://github.com/korakiThanatou" target="_blank">korakiThanatou</a>.</p>
+</footer>
 
 <div class="modal-overlay" id="achievement-modal">
   <div class="modal-card">
@@ -524,7 +598,7 @@
   let streakCount = parseInt(localStorage.getItem('sudoku_streak') || '0');
 
   let playerPoints = parseInt(localStorage.getItem('sudoku_points') || '0');
-  let unlockedSkins = JSON.parse(localStorage.getItem('sudoku_unlocked_skins') || '["classic"]');
+  let unlockedSkins = JSON.parse(localStorage.getItem('sudoku_unlocked_skins') || '["classic", "emerald"]');
   let activeSkin = localStorage.getItem('sudoku_active_skin') || 'classic';
 
   let unlockedAchievements = JSON.parse(localStorage.getItem('sudoku_achievements') || '[]');
@@ -568,8 +642,8 @@
 
   function updateMarketUI() {
     updatePointsDisplay();
-    const skins = ['classic', 'neon', 'retro'];
-    const prices = { classic: 0, neon: 50, retro: 100 };
+    const skins = ['classic', 'emerald', 'neon', 'retro', 'sunset'];
+    const prices = { classic: 0, emerald: 0, neon: 50, retro: 100, sunset: 200 };
 
     skins.forEach(skin => {
       const btn = document.getElementById(`skin-btn-${skin}`);
@@ -892,7 +966,7 @@
 
   function shuffleBoard(matrix, seed = null) {
     let board = matrix.map(row => [...row]);
-    let s = seed ? parseInt(seed) : Math.floor(Math.random() * 100000);
+    let s = seed ? parseInt(seed) : Math.floor(Math.random() * 10000);
     const pseudoRandom = () => { let x = Math.sin(s++) * 10000; return x - Math.floor(x); };
 
     let nums = [1,2,3,4,5,6,7,8,9].sort(() => pseudoRandom() - 0.5);
