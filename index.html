@@ -1,1638 +1,1710 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Flappy Bird Pro - Definitivo</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            user-select: none;
-            -webkit-user-select: none;
-            -webkit-touch-callout: none;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sudoku Pro - Versão Completa</title>
+  <style>
+    /* ==========================================
+       SISTEMA DE TEMAS E SKINS UNIFICADAS (LIGHT / DARK)
+       ================================---------- */
+    :root {
+      --bg-color: #0f172a;
+      --card-bg: #1e293b;
+      --text-color: #f8fafc;
+      --border-color: #475569;
+      --light-border: #334155;
+      --correct-color: #22c55e;
+      --error-color: #ef4444;
+      --selected-bg: #1d4ed8;
+      --highlight-match-bg: #1e3a8a;
+      --highlight-line-bg: #334155;
+      --primary-color: #3b82f6;
+      --hint-color: #f59e0b;
+      --block-completed-bg: #064e3b;
+      --note-color: #94a3b8;
+      --locked-color: #64748b;
+      --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+    }
 
-        body {
-            background-color: #0f172a;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            color: #fff;
-            overflow: hidden;
-            touch-action: manipulation;
-        }
+    body.light-mode {
+      --bg-color: #f1f5f9;
+      --card-bg: #ffffff;
+      --text-color: #0f172a;
+      --border-color: #cbd5e1;
+      --light-border: #e2e8f0;
+      --correct-color: #16a34a;
+      --error-color: #dc2626;
+      --selected-bg: #bfdbfe;
+      --highlight-match-bg: #dbeafe;
+      --highlight-line-bg: #f8fafc;
+      --primary-color: #2563eb;
+      --hint-color: #d97706;
+      --block-completed-bg: #dcfce7;
+      --note-color: #64748b;
+      --locked-color: #94a3b8;
+      --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+    }
 
-        .game-container {
-            position: relative;
-            width: 100%;
-            max-width: 400px;
-            height: 100vh;
-            max-height: 600px;
-            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
-            border-radius: 0;
-            overflow: hidden;
-            border: none;
-            background: #1e1b4b;
-        }
+    /* SKINS INTERATIVAS COM SUPORTE INTEGRAL LIGHT/DARK */
+    body.skin-neon {
+      --bg-color: #030712;
+      --card-bg: #0b0f19;
+      --text-color: #22d3ee;
+      --border-color: #0891b2;
+      --light-border: #164e63;
+      --primary-color: #06b6d4;
+      --highlight-line-bg: #0f172a;
+      --selected-bg: #0e7490;
+      --highlight-match-bg: #164e63;
+      --shadow: 0 0 25px rgba(6, 182, 212, 0.25);
+    }
+    body.skin-neon.light-mode {
+      --bg-color: #ecfeff;
+      --card-bg: #ffffff;
+      --text-color: #0e7490;
+      --border-color: #06b6d4;
+      --light-border: #cffafe;
+      --primary-color: #0891b2;
+      --highlight-line-bg: #f0fdfa;
+      --selected-bg: #a5f3fc;
+      --highlight-match-bg: #cffafe;
+      --shadow: 0 0 20px rgba(6, 182, 212, 0.15);
+    }
+    .sudoku-board.skin-neon .cell { background: var(--card-bg); border-color: var(--light-border); color: var(--text-color); }
+    .sudoku-board.skin-neon .cell.selected { background: var(--selected-bg) !important; color: #fff; }
 
-        @media (min-width: 401px) {
-            .game-container {
-                border-radius: 20px;
-                border: 2px solid #334155;
-                height: 600px;
-            }
-        }
+    body.skin-retro {
+      --bg-color: #fdf6e2;
+      --card-bg: #fffbeb;
+      --text-color: #78350f;
+      --border-color: #d97706;
+      --light-border: #fcd34d;
+      --primary-color: #b45309;
+      --highlight-line-bg: #fef3c7;
+      --selected-bg: #f59e0b;
+      --highlight-match-bg: #fde68a;
+      --shadow: 0 10px 25px -5px rgba(180, 83, 9, 0.15);
+    }
+    body.skin-retro.light-mode {
+      --bg-color: #fffbeb;
+      --card-bg: #ffffff;
+      --text-color: #78350f;
+      --border-color: #f59e0b;
+      --light-border: #fef3c7;
+      --primary-color: #d97706;
+      --highlight-line-bg: #fffdf4;
+      --selected-bg: #fde68a;
+      --highlight-match-bg: #fef3c7;
+    }
+    .sudoku-board.skin-retro { border-color: var(--border-color) !important; }
+    .sudoku-board.skin-retro .cell { background: var(--card-bg); border-color: var(--light-border); color: var(--text-color); }
 
-        canvas {
-            display: block;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(to bottom, #1e1b4b, #311b92, #0f172a);
-        }
+    body.skin-emerald {
+      --bg-color: #022c22;
+      --card-bg: #064e3b;
+      --text-color: #34d399;
+      --border-color: #059669;
+      --light-border: #065f46;
+      --primary-color: #10b981;
+      --highlight-line-bg: #022c22;
+      --selected-bg: #047857;
+      --highlight-match-bg: #065f46;
+      --shadow: 0 0 25px rgba(5, 150, 105, 0.25);
+    }
+    body.skin-emerald.light-mode {
+      --bg-color: #ecfdf5;
+      --card-bg: #ffffff;
+      --text-color: #065f46;
+      --border-color: #10b981;
+      --light-border: #a7f3d0;
+      --primary-color: #059669;
+      --highlight-line-bg: #f0fdf4;
+      --selected-bg: #a7f3d0;
+      --highlight-match-bg: #d1fae5;
+    }
+    .sudoku-board.skin-emerald .cell { background: var(--card-bg); border-color: var(--light-border); color: var(--text-color); }
 
-        /* --- Toast Banner --- */
-        .toast-banner {
-            position: absolute;
-            top: 75px;
-            left: 50%;
-            transform: translateX(-50%) translateY(-20px);
-            background: rgba(15, 23, 42, 0.92);
-            border: 1px solid rgba(56, 189, 248, 0.3);
-            color: #38bdf8;
-            padding: 8px 18px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 700;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
-            backdrop-filter: blur(8px);
-            z-index: 50;
-            opacity: 0;
-            pointer-events: none;
-            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-            text-align: center;
-            max-width: 90%;
-        }
+    body.skin-sunset {
+      --bg-color: #431407;
+      --card-bg: #7c2d12;
+      --text-color: #fb923c;
+      --border-color: #ea580c;
+      --light-border: #9a3412;
+      --primary-color: #f97316;
+      --highlight-line-bg: #431407;
+      --selected-bg: #c2410c;
+      --highlight-match-bg: #9a3412;
+      --shadow: 0 0 25px rgba(234, 88, 12, 0.25);
+    }
+    body.skin-sunset.light-mode {
+      --bg-color: #fff7ed;
+      --card-bg: #ffffff;
+      --text-color: #9a3412;
+      --border-color: #f97316;
+      --light-border: #fed7aa;
+      --primary-color: #ea580c;
+      --highlight-line-bg: #ffedd5;
+      --selected-bg: #fed7aa;
+      --highlight-match-bg: #ffedd5;
+    }
+    .sudoku-board.skin-sunset .cell { background: var(--card-bg); border-color: var(--light-border); color: var(--text-color); }
 
-        .toast-banner.show {
-            opacity: 1;
-            transform: translateX(-50%) translateY(0);
-        }
+    body.skin-golden {
+      --bg-color: #1a1400;
+      --card-bg: #2d2302;
+      --text-color: #fde047;
+      --border-color: #eab308;
+      --light-border: #713f12;
+      --primary-color: #ca8a04;
+      --highlight-line-bg: #1a1400;
+      --selected-bg: #854d0e;
+      --highlight-match-bg: #422006;
+      --shadow: 0 0 30px rgba(234, 179, 8, 0.3);
+    }
+    body.skin-golden.light-mode {
+      --bg-color: #fefce8;
+      --card-bg: #ffffff;
+      --text-color: #713f12;
+      --border-color: #ca8a04;
+      --light-border: #fef08a;
+      --primary-color: #eab308;
+      --highlight-line-bg: #fef9c3;
+      --selected-bg: #fef08a;
+      --highlight-match-bg: #fefce8;
+      --shadow: 0 10px 25px -5px rgba(202, 138, 4, 0.15);
+    }
+    .sudoku-board.skin-golden .cell { background: var(--card-bg); border-color: var(--light-border); color: var(--text-color); }
 
-        /* --- UI Superior Esquerda --- */
-        .ui-top-left {
-            position: absolute;
-            top: 16px;
-            left: 16px;
-            display: flex;
-            gap: 8px;
-            z-index: 10;
-        }
+    /* NOVO TEMA ROXINHO / LAVENDER VIP */
+    body.skin-roxinho {
+      --bg-color: #1e1b4b;
+      --card-bg: #312e81;
+      --text-color: #e0e7ff;
+      --border-color: #818cf8;
+      --light-border: #4338ca;
+      --primary-color: #6366f1;
+      --highlight-line-bg: #1e1b4b;
+      --selected-bg: #4f46e5;
+      --highlight-match-bg: #3730a3;
+      --shadow: 0 0 30px rgba(99, 102, 241, 0.25);
+    }
+    body.skin-roxinho.light-mode {
+      --bg-color: #f5f3ff;
+      --card-bg: #ffffff;
+      --text-color: #4c1d95;
+      --border-color: #8b5cf6;
+      --light-border: #ede9fe;
+      --primary-color: #7c3aed;
+      --highlight-line-bg: #faf5ff;
+      --selected-bg: #ddd6fe;
+      --highlight-match-bg: #ede9fe;
+      --shadow: 0 10px 25px -5px rgba(124, 58, 237, 0.15);
+    }
+    .sudoku-board.skin-roxinho .cell { background: var(--card-bg); border-color: var(--light-border); color: var(--text-color); }
 
-        .btn-icon {
-            background: rgba(15, 23, 42, 0.75);
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            color: #fff;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 1.1rem;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-            transition: transform 0.15s ease, background 0.2s, border-color 0.2s;
-        }
+    /* NOVO TEMA COQUETTE */
+    body.skin-coquette {
+      --bg-color: #fff1f2;
+      --card-bg: #ffffff;
+      --text-color: #9f1239;
+      --border-color: #fb7185;
+      --light-border: #ffe4e6;
+      --primary-color: #f43f5e;
+      --highlight-line-bg: #fff1f2;
+      --selected-bg: #fecdd3;
+      --highlight-match-bg: #ffe4e6;
+      --shadow: 0 10px 25px -5px rgba(244, 63, 94, 0.15);
+    }
+    body.skin-coquette.light-mode {
+      --bg-color: #fff1f2;
+      --card-bg: #ffffff;
+      --text-color: #9f1239;
+      --border-color: #fb7185;
+      --light-border: #ffe4e6;
+      --primary-color: #f43f5e;
+      --highlight-line-bg: #fff1f2;
+      --selected-bg: #fecdd3;
+      --highlight-match-bg: #ffe4e6;
+      --shadow: 0 10px 25px -5px rgba(244, 63, 94, 0.15);
+    }
+    .sudoku-board.skin-coquette .cell { background: var(--card-bg); border-color: var(--light-border); color: var(--text-color); }
 
-        .btn-icon:hover {
-            transform: scale(1.1);
-            background: rgba(30, 41, 59, 0.9);
-            border-color: rgba(56, 189, 248, 0.4);
-        }
+    /* NOVO TEMA ULTRAKILL */
+    body.skin-ultrakill {
+      --bg-color: #050505;
+      --card-bg: #121212;
+      --text-color: #ffffff;
+      --border-color: #e11d48;
+      --light-border: #262626;
+      --primary-color: #f43f5e;
+      --highlight-line-bg: #0a0a0a;
+      --selected-bg: #9f1239;
+      --highlight-match-bg: #1f1f1f;
+      --shadow: 0 0 35px rgba(225, 29, 72, 0.35);
+    }
+    body.skin-ultrakill.light-mode {
+      --bg-color: #fafafa;
+      --card-bg: #ffffff;
+      --text-color: #0a0a0a;
+      --border-color: #e11d48;
+      --light-border: #e5e5e5;
+      --primary-color: #e11d48;
+      --highlight-line-bg: #f5f5f5;
+      --selected-bg: #fecdd3;
+      --highlight-match-bg: #ffe4e6;
+      --shadow: 0 10px 25px -5px rgba(225, 29, 72, 0.2);
+    }
+    .sudoku-board.skin-ultrakill .cell { background: var(--card-bg); border-color: var(--light-border); color: var(--text-color); }
 
-        /* --- UI Superior Direito --- */
-        .score-board {
-            position: absolute;
-            top: 16px;
-            right: 16px;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            gap: 6px;
-            z-index: 10;
-        }
+    /* ==========================================
+       ESTRUTURA GERAL E LAYOUT RESPONSIVO
+       ================================---------- */
+    * { box-sizing: border-box; }
 
-        .score-box {
-            background: rgba(15, 23, 42, 0.8);
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-weight: 800;
-            font-size: 1.1rem;
-            color: #38bdf8;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-        }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 16px;
+      position: relative;
+      transition: background-color 0.3s, color 0.3s;
+    }
 
-        .coins-box {
-            color: #fbbf24;
-            font-size: 0.95rem;
-        }
+    .exit-focus-btn {
+      display: none; position: fixed; top: 12px; left: 50%; transform: translateX(-50%);
+      background-color: var(--error-color); color: white; border: none; border-radius: 20px;
+      padding: 8px 16px; font-size: 13px; font-weight: bold; cursor: pointer;
+      box-shadow: var(--shadow); z-index: 999;
+    }
 
-        /* --- Active Boosters Banner (HUD) --- */
-        .boosters-hud {
-            position: absolute;
-            top: 75px;
-            right: 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            z-index: 10;
-            pointer-events: none;
-        }
+    body.focus-mode .sidebar, body.focus-mode .bottom-section, body.focus-mode .hud-bar,
+    body.focus-mode .controls, body.focus-mode h1, body.focus-mode .easter-egg-btn,
+    body.focus-mode .theme-toggle-btn, body.focus-mode .settings-toggle-btn,
+    body.focus-mode .trophies-shelf, body.focus-mode .market-toggle-btn, body.focus-mode footer { display: none !important; }
+    body.focus-mode .exit-focus-btn { display: block !important; }
+    body.focus-mode .main-wrapper { margin-top: 40px; }
+    body.focus-mode .container { box-shadow: none; background: transparent; padding: 0; }
 
-        .booster-tag {
-            background: rgba(15, 23, 42, 0.85);
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(251, 191, 36, 0.4);
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            color: #fbbf24;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            animation: fadeInScale 0.2s ease;
-        }
+    .easter-egg-btn, .theme-toggle-btn, .settings-toggle-btn {
+      position: fixed; top: 12px; background: var(--card-bg); border: 1px solid var(--light-border);
+      border-radius: 50%; width: 42px; height: 42px; display: flex; align-items: center;
+      justify-content: center; font-size: 18px; cursor: pointer; color: var(--text-color);
+      box-shadow: var(--shadow); z-index: 90; transition: transform 0.2s;
+    }
+    .easter-egg-btn:hover, .theme-toggle-btn:hover, .settings-toggle-btn:hover { transform: scale(1.08); }
+    .easter-egg-btn { right: 16px; animation: pulse 2.5s infinite; }
+    .theme-toggle-btn { right: 68px; }
+    .settings-toggle-btn { right: 120px; }
 
-        @keyframes fadeInScale {
-            from { opacity: 0; transform: scale(0.8); }
-            to { opacity: 1; transform: scale(1); }
-        }
+    /* BOTÃO DO MERCADINHO APRIMORADO E ESTILIZADO */
+    .market-toggle-btn {
+      position: fixed;
+      top: 12px;
+      right: 172px;
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      border: 1px solid #fbbf24;
+      border-radius: 24px;
+      height: 42px;
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 800;
+      color: #000;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
+      z-index: 90;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .market-toggle-btn:hover {
+      transform: translateY(-2px) scale(1.04);
+      box-shadow: 0 6px 20px rgba(245, 158, 11, 0.6);
+      background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    }
+    .market-toggle-btn span {
+      background: rgba(0, 0, 0, 0.15);
+      padding: 3px 8px;
+      border-radius: 12px;
+      color: #000;
+      font-size: 12px;
+    }
 
-        /* --- Telas Modais --- */
-        .overlay {
-            position: absolute;
-            inset: 0;
-            background: rgba(15, 23, 42, 0.88);
-            backdrop-filter: blur(12px);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            gap: 16px;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.25s ease;
-            z-index: 30;
-            padding: 16px;
-        }
+    .trophies-shelf {
+      position: fixed; top: 12px; left: 16px; right: 260px; display: flex; gap: 6px; z-index: 90;
+      background: var(--card-bg); padding: 6px 12px; border-radius: 20px;
+      border: 1px solid var(--light-border); box-shadow: var(--shadow);
+      overflow-x: auto; align-items: center; white-space: nowrap;
+    }
+    .trophies-shelf::-webkit-scrollbar { display: none; }
+    .trophy-badge {
+      display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: bold;
+      background: rgba(245, 158, 11, 0.15); border: 1px solid var(--hint-color); padding: 3px 8px;
+      border-radius: 12px; white-space: nowrap; cursor: pointer; color: var(--text-color);
+    }
 
-        .overlay.active {
-            opacity: 1;
-            pointer-events: all;
-        }
+    @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.12); } 100% { transform: scale(1); } }
 
-        .modal-title {
-            font-size: 1.6rem;
-            font-weight: 900;
-            color: #38bdf8;
-            letter-spacing: 0.5px;
-            text-align: center;
-            text-shadow: 0 2px 10px rgba(56, 189, 248, 0.3);
-        }
+    .main-wrapper {
+      display: flex; flex-direction: column; align-items: center; gap: 20px;
+      max-width: 900px; width: 100%; margin-top: 60px; flex: 1;
+    }
 
-        /* --- Layout Estilizado do Shopping --- */
-        .shop-wrapper, .list-wrapper {
-            display: flex;
-            flex-direction: column;
-            width: 100%;
-            max-width: 360px;
-            height: 72%;
-            background: linear-gradient(135deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.8));
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-        }
+    .top-section { display: flex; flex-wrap: wrap; gap: 20px; width: 100%; justify-content: center; }
+    .container { background: var(--card-bg); padding: 20px; border-radius: 16px; box-shadow: var(--shadow); flex: 1 1 420px; max-width: 480px; width: 100%; border: 1px solid var(--light-border); transition: background-color 0.3s, border-color 0.3s; }
+    .sidebar { background: var(--card-bg); padding: 20px; border-radius: 16px; box-shadow: var(--shadow); flex: 1 1 280px; max-width: 480px; width: 100%; display: flex; flex-direction: column; gap: 20px; border: 1px solid var(--light-border); transition: background-color 0.3s, border-color 0.3s; }
+    .bottom-section { background: var(--card-bg); padding: 20px; border-radius: 16px; box-shadow: var(--shadow); width: 100%; overflow-x: auto; border: 1px solid var(--light-border); transition: background-color 0.3s, border-color 0.3s; }
 
-        @media (min-width: 480px) {
-            .shop-wrapper, .list-wrapper {
-                flex-direction: row;
-                max-width: 92%;
-            }
-        }
+    h1 { text-align: center; margin: 0 0 16px 0; font-size: 26px; font-weight: 800; background: linear-gradient(45deg, var(--primary-color), var(--hint-color)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    h2, h3 { text-align: center; margin-top: 0; font-size: 16px; border-bottom: 2px solid var(--primary-color); padding-bottom: 8px; margin-bottom: 14px; font-weight: 700; letter-spacing: 0.5px; }
 
-        .shop-preview-side {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-            background: rgba(15, 23, 42, 0.5);
-            gap: 10px;
-            padding: 10px;
-        }
+    .hud-bar { display: flex; justify-content: space-between; align-items: center; background: var(--highlight-line-bg); padding: 10px 14px; border-radius: 10px; margin-bottom: 16px; font-weight: bold; font-size: 14px; min-height: 44px; border: 1px solid var(--light-border); }
+    .btn-hud { padding: 6px 10px; font-size: 12px; background-color: var(--primary-color); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; transition: opacity 0.2s; }
+    .btn-hud:hover { opacity: 0.9; }
+    .btn-hint { background-color: var(--hint-color); color: #000; }
 
-        @media (min-width: 480px) {
-            .shop-preview-side {
-                border-bottom: none;
-                border-right: 1px solid rgba(255, 255, 255, 0.08);
-                flex: 1.1;
-                padding: 15px;
-            }
-        }
+    .controls { display: flex; flex-direction: column; gap: 12px; margin-bottom: 14px; }
+    .row { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
 
-        .preview-box {
-            position: relative;
-            width: 90px;
-            height: 120px;
-            border-radius: 12px;
-            overflow: hidden;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.5);
-            background: #0f172a;
-        }
+    select, button, input[type="text"], input[type="password"], input[type="number"] { padding: 8px 12px; font-size: 13px; border-radius: 8px; border: 1px solid var(--light-border); background-color: var(--card-bg); color: var(--text-color); cursor: pointer; transition: all 0.2s; }
+    select option:disabled { color: var(--locked-color); font-style: italic; }
+    input[type="text"], input[type="password"], input[type="number"] { cursor: text; }
+    select:focus, input:focus { outline: 2px solid var(--primary-color); }
 
-        @media (min-width: 480px) {
-            .preview-box {
-                width: 110px;
-                height: 150px;
-            }
-        }
+    .action-btn { background-color: var(--primary-color); color: white; border: none; font-weight: 600; }
+    .focus-btn { background-color: #8b5cf6; color: white; border: none; font-weight: 600; }
+    .mode-btn { background-color: #64748b; color: white; border: none; font-weight: 600; }
+    .mode-btn.active { background-color: #16a34a; }
 
-        #previewCanvas {
-            width: 100%;
-            height: 100%;
-            display: block;
-        }
+    .status { text-align: center; font-size: 13px; font-weight: bold; min-height: 20px; margin-bottom: 8px; color: var(--error-color); }
 
-        .preview-controls {
-            display: flex;
-            gap: 4px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
+    .board-wrapper { position: relative; margin: 0 auto 16px auto; width: 100%; max-width: 400px; aspect-ratio: 1; }
+    .countdown-overlay { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(4px); z-index: 10; justify-content: center; align-items: center; color: white; font-size: 80px; font-weight: bold; border-radius: 12px; }
 
-        .preview-btn {
-            background: rgba(30, 41, 59, 0.9);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: #94a3b8;
-            padding: 4px 8px;
-            border-radius: 6px;
-            font-size: 0.72rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
+    .sudoku-board { display: grid; grid-template-columns: repeat(9, 1fr); border: 3px solid var(--border-color); width: 100%; height: 100%; border-radius: 8px; overflow: hidden; box-shadow: var(--shadow); transition: all 0.3s; }
+    .cell { border: 1px solid var(--light-border); display: flex; align-items: center; justify-content: center; font-size: clamp(15px, 4vw, 21px); font-weight: bold; user-select: none; cursor: pointer; background: var(--card-bg); position: relative; transition: background-color 0.15s; }
+    .cell:nth-child(3n) { border-right: 2px solid var(--border-color); }
+    .cell:nth-child(9n) { border-right: none; }
+    .sudoku-board > div:nth-child(n+19):nth-child(-n+27), .sudoku-board > div:nth-child(n+46):nth-child(-n+54) { border-bottom: 2px solid var(--border-color); }
 
-        .preview-btn.active {
-            background: #38bdf8;
-            color: #0f172a;
-            border-color: #38bdf8;
-        }
+    .cell.block-completed { background-color: var(--block-completed-bg); }
+    .cell.line-highlight { background-color: var(--highlight-line-bg); }
+    .cell.correct { color: var(--correct-color); }
+    .cell.incorrect { color: var(--error-color); background-color: rgba(239, 68, 68, 0.15) !important; }
+    .cell.highlighted { background-color: var(--highlight-match-bg) !important; }
+    .cell.selected { outline: 2px solid var(--primary-color); background-color: var(--selected-bg) !important; z-index: 2; color: #fff; }
 
-        .shop-items-side, .list-items-side {
-            flex: 1.6;
-            display: flex;
-            flex-direction: column;
-            padding: 12px;
-            overflow: hidden;
-        }
+    .notes-grid { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); width: 100%; height: 100%; font-size: 9px; color: var(--note-color); text-align: center; pointer-events: none; }
+    .note-item { display: flex; align-items: center; justify-content: center; }
 
-        .list-items-side {
-            flex: 1;
-        }
+    .numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; max-width: 400px; margin: 0 auto; }
+    .numpad button { padding: 12px 0; font-size: 16px; font-weight: bold; background-color: var(--highlight-line-bg); border: 1px solid var(--light-border); border-radius: 8px; color: var(--text-color); transition: transform 0.1s; }
+    .numpad button:active { transform: scale(0.95); }
+    .numpad button.erase { background-color: rgba(239, 68, 68, 0.15); color: var(--error-color); border-color: rgba(239, 68, 68, 0.3); }
+    .numpad button.undo { background-color: rgba(245, 158, 11, 0.15); color: var(--hint-color); border-color: rgba(245, 158, 11, 0.3); }
+    .numpad button.completed { opacity: 0.25; pointer-events: none; }
 
-        .shop-tabs-main {
-            display: flex;
-            gap: 6px;
-            margin-bottom: 8px;
-        }
+    .badges-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .badge-card { background: var(--highlight-line-bg); padding: 10px 8px; border-radius: 8px; font-size: 11px; text-align: center; opacity: 0.4; filter: grayscale(1); transition: all 0.3s; cursor: pointer; border: 1px solid var(--light-border); }
+    .badge-card:hover { transform: translateY(-2px); border-color: var(--primary-color); }
+    .badge-card.unlocked { opacity: 1; filter: grayscale(0); border-color: var(--correct-color); font-weight: bold; background-color: rgba(34, 197, 94, 0.1); }
+    .badge-card.special-unlock { border-color: var(--hint-color); color: var(--hint-color); }
 
-        .shop-tabs-sub {
-            display: flex;
-            gap: 6px;
-            margin-bottom: 10px;
-        }
+    .history-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .history-table th, .history-table td { border: 1px solid var(--light-border); padding: 8px; text-align: center; }
+    .history-table th { background-color: var(--highlight-line-bg); }
 
-        .tab-btn {
-            flex: 1;
-            background: rgba(30, 41, 59, 0.8);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            color: #94a3b8;
-            padding: 8px 4px;
-            border-radius: 10px;
-            font-weight: 700;
-            font-size: 0.8rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-align: center;
-        }
+    .market-drawer { position: fixed; top: 0; right: -360px; width: 340px; height: 100%; background: var(--card-bg); box-shadow: -5px 0 25px rgba(0,0,0,0.5); z-index: 1050; transition: right 0.3s ease; display: flex; flex-direction: column; border-left: 1px solid var(--light-border); }
+    .market-drawer.active { right: 0; }
+    .market-header { display: flex; justify-content: space-between; align-items: center; padding: 20px; border-bottom: 1px solid var(--light-border); }
+    .market-body { padding: 20px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 12px; }
+    .skin-market-card { background: var(--highlight-line-bg); border: 1px solid var(--light-border); padding: 14px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; }
 
-        .tab-btn:hover {
-            background: rgba(51, 65, 85, 0.9);
-            color: #fff;
-        }
+    footer {
+      width: 100%;
+      text-align: center;
+      padding: 24px;
+      font-size: 13px;
+      color: var(--note-color);
+      border-top: 1px solid var(--light-border);
+      margin-top: 40px;
+      background: var(--card-bg);
+      box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.05);
+      transition: background-color 0.3s, color 0.3s;
+    }
+    footer a { color: var(--primary-color); text-decoration: none; font-weight: bold; }
+    footer a:hover { text-decoration: underline; }
 
-        .tab-btn.active {
-            background: linear-gradient(135deg, #38bdf8, #2563eb);
-            color: #fff;
-            border-color: #38bdf8;
-            box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3);
-        }
+    .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.65); backdrop-filter: blur(5px); z-index: 9999; justify-content: center; align-items: center; padding: 16px; opacity: 0; transition: opacity 0.25s ease; }
+    .modal-overlay.active { display: flex; opacity: 1; }
+    
+    .modal-card { background: var(--card-bg); padding: 24px; border-radius: 20px; text-align: center; max-width: 400px; width: 100%; box-shadow: 0 20px 35px rgba(0, 0, 0, 0.4); border: 1px solid var(--light-border); transform: scale(0.9); transition: transform 0.25s ease; position: relative; z-index: 10000; }
+    .modal-overlay.active .modal-card { transform: scale(1); }
 
-        .items-list {
-            flex: 1;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            padding-right: 4px;
-        }
+    #admin-achievements-modal, #confirm-modal, #alert-modal { z-index: 11000 !important; }
+    #admin-achievements-modal .modal-card, #confirm-modal .modal-card, #alert-modal .modal-card { z-index: 11001 !important; }
 
-        .items-list::-webkit-scrollbar {
-            width: 5px;
-        }
-        .items-list::-webkit-scrollbar-track {
-            background: rgba(0,0,0,0.1);
-            border-radius: 10px;
-        }
-        .items-list::-webkit-scrollbar-thumb {
-            background: rgba(56, 189, 248, 0.3);
-            border-radius: 10px;
-        }
+    .epic-modal-card { background: linear-gradient(135deg, #0f172a, #1e293b); border: 2px solid var(--hint-color); box-shadow: 0 0 50px rgba(245, 158, 11, 0.3); max-width: 440px; }
+    .epic-trophy { font-size: 64px; animation: bounceTrophy 1.5s infinite alternate; margin: 10px 0; }
+    @keyframes bounceTrophy { 0% { transform: translateY(0) scale(1); } 100% { transform: translateY(-12px) scale(1.08); } }
 
-        .item-card {
-            background: rgba(15, 23, 42, 0.75);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            padding: 10px 14px;
-            border-radius: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.9rem;
-            transition: border-color 0.2s;
-        }
+    .love-card { background: rgba(236, 72, 153, 0.1); border: 1px solid rgba(236, 72, 153, 0.3); padding: 18px; border-radius: 12px; font-size: 16px; font-weight: bold; color: #ec4899; margin: 14px 0; line-height: 1.4; }
+    .switch-container { display: flex; justify-content: space-between; align-items: center; margin: 14px 0; font-size: 14px; }
 
-        .item-card:hover {
-            border-color: rgba(56, 189, 248, 0.25);
-        }
+    .admin-achievements-list { display: flex; flex-direction: column; gap: 8px; max-height: 220px; overflow-y: auto; text-align: left; margin: 12px 0; padding-right: 4px; }
+    .admin-achieve-item { display: flex; justify-content: space-between; align-items: center; background: var(--highlight-line-bg); padding: 8px 12px; border-radius: 8px; border: 1px solid var(--light-border); font-size: 13px; }
 
-        .item-info {
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-        }
+    @media (max-width: 480px) {
+      body { padding: 8px; }
+      .container, .sidebar { padding: 12px; }
+      h1 { font-size: 22px; }
+      .trophies-shelf { right: 180px; }
+      .market-toggle-btn { right: 120px; padding: 0 10px; font-size: 11px; }
+    }
 
-        .item-name {
-            font-weight: 700;
-            color: #fff;
-            font-size: 0.9rem;
-        }
-
-        .item-price, .item-desc {
-            font-size: 0.78rem;
-            color: #fbbf24;
-        }
-
-        .item-desc {
-            color: #94a3b8;
-        }
-
-        .btn-action {
-            background: linear-gradient(135deg, #38bdf8, #0284c7);
-            border: none;
-            color: #fff;
-            padding: 6px 14px;
-            border-radius: 8px;
-            font-weight: 700;
-            font-size: 0.8rem;
-            cursor: pointer;
-            box-shadow: 0 2px 8px rgba(56, 189, 248, 0.25);
-            transition: transform 0.1s, opacity 0.2s;
-            white-space: nowrap;
-        }
-
-        .btn-action:hover {
-            transform: scale(1.05);
-        }
-
-        .btn-action:disabled {
-            background: #475569;
-            color: #94a3b8;
-            box-shadow: none;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        /* --- Botões Gerais --- */
-        .btn-main {
-            background: linear-gradient(135deg, #38bdf8, #6366f1);
-            border: none;
-            color: #fff;
-            padding: 10px 28px;
-            font-size: 0.95rem;
-            font-weight: 800;
-            border-radius: 24px;
-            cursor: pointer;
-            box-shadow: 0 6px 20px rgba(56, 189, 248, 0.35);
-            transition: transform 0.1s, box-shadow 0.2s;
-        }
-
-        .btn-main:hover {
-            transform: scale(1.05);
-            box-shadow: 0 8px 25px rgba(56, 189, 248, 0.5);
-        }
-
-        .config-card, .stats-card {
-            background: rgba(30, 41, 59, 0.85);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 16px;
-            padding: 18px 24px;
-            width: 100%;
-            max-width: 340px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-        }
-
-        .config-row, .stat-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.92rem;
-            color: #cbd5e1;
-            gap: 10px;
-        }
-
-        .config-input {
-            background: #0f172a;
-            border: 1px solid #475569;
-            color: #fff;
-            padding: 6px 10px;
-            border-radius: 8px;
-            width: 120px;
-            outline: none;
-            font-size: 0.9rem;
-        }
-
-        .config-input:focus {
-            border-color: #38bdf8;
-        }
-
-        .instructions {
-            position: absolute;
-            bottom: 30px;
-            font-size: 0.85rem;
-            color: #94a3b8;
-            pointer-events: none;
-            width: 100%;
-            text-align: center;
-            animation: pulse 1.5s infinite alternate;
-        }
-
-        @keyframes pulse {
-            from { opacity: 0.4; }
-            to { opacity: 1; }
-        }
-    </style>
+    @media (min-width: 768px) { 
+      body { padding: 24px; } 
+      .container, .sidebar { padding: 24px; } 
+      .numpad { grid-template-columns: repeat(6, 1fr); }
+    }
+  </style>
 </head>
 <body>
 
-    <div class="game-container">
-        <!-- Toast Banner -->
-        <div class="toast-banner" id="toast-banner">Aviso importante</div>
+<div class="trophies-shelf" id="trophies-shelf" title="Seus Troféus Conquistados">
+  <span style="font-size: 11px; opacity: 0.7;">🏆 Troféus:</span>
+  <div id="trophies-container" style="display: flex; gap: 6px;"></div>
+</div>
 
-        <!-- UI: Canto Superior Esquerdo -->
-        <div class="ui-top-left">
-            <button class="btn-icon" id="pause-btn" title="Pausar">⏸️</button>
-            <button class="btn-icon" id="config-btn" title="Configurações">⚙️</button>
-            <button class="btn-icon" id="shop-btn" title="Loja">🛒</button>
-        </div>
+<button class="exit-focus-btn" id="btn-exit-focus">🔍 Sair do Modo Foco</button>
 
-        <!-- UI: Canto Superior Direito -->
-        <div class="score-board">
-            <div class="score-box" id="score-display">0</div>
-            <div class="score-box coins-box" id="coins-display">🪙 0</div>
-        </div>
+<button class="market-toggle-btn" id="btn-open-market">🛒 Mercadinho <span id="points-display">0</span></button>
+<button class="settings-toggle-btn" id="btn-settings" title="Configurações (A)">⚙️</button>
+<button class="theme-toggle-btn" id="btn-theme" title="Alternar Tema">🌙</button>
+<button class="easter-egg-btn" id="btn-easter-egg" title="Um recadinho...">💖</button>
 
-        <!-- Boosters Ativos HUD -->
-        <div class="boosters-hud" id="boosters-hud"></div>
+<div class="market-drawer" id="market-drawer">
+  <div class="market-header">
+    <h2 style="margin:0; font-size:18px;">🛒 Mercadinho de Estilos</h2>
+    <button class="action-btn" style="padding: 4px 10px;" id="btn-close-market">✕</button>
+  </div>
+  <div class="market-body">
+    <p style="font-size: 13px; margin: 0; color: var(--note-color);">Ganhe pontos vencendo partidas para desbloquear visuais exclusivos para o seu tabuleiro e site!</p>
+    <div style="font-weight: bold; font-size: 14px; margin-top: 4px;">Seus Pontos: <span id="market-points-count" style="color: var(--hint-color);">0</span></div>
+    
+    <hr style="border:0; border-top:1px solid var(--light-border); margin: 6px 0;">
 
-        <canvas id="gameCanvas" width="400" height="600"></canvas>
-        <div class="instructions" id="instructions">Toque na tela ou Pressione ESPAÇO para Voar</div>
-
-        <!-- TELA DE CONFIGURAÇÕES -->
-        <div class="overlay" id="config-modal">
-            <h1 class="modal-title">CONFIGURAÇÕES</h1>
-            <div class="config-card">
-                <div class="config-row">
-                    <span>Efeitos Sonoros</span>
-                    <input type="checkbox" id="sound-toggle" checked style="accent-color: #38bdf8; width: 18px; height: 18px; cursor: pointer;">
-                </div>
-                <div class="config-row">
-                    <span>Painel Admin</span>
-                    <button class="btn-action" id="open-admin-btn">Acessar</button>
-                </div>
-                <div class="config-row">
-                    <span>Conquistas</span>
-                    <button class="btn-action" id="open-achievements-btn" style="background: linear-gradient(135deg, #fbbf24, #d97706);">Ver Conquistas</button>
-                </div>
-            </div>
-            <button class="btn-main" id="close-config-btn">Salvar / Voltar</button>
-        </div>
-
-        <!-- TELA DO PAINEL ADMIN -->
-        <div class="overlay" id="admin-modal">
-            <h1 class="modal-title" style="color: #f43f5e; text-shadow: 0 2px 10px rgba(244, 63, 94, 0.3);">PAINEL ADMIN</h1>
-            <div class="config-card" id="admin-login-box">
-                <div class="config-row">
-                    <span>Senha de Acesso:</span>
-                    <input type="password" id="admin-pass-input" class="config-input" placeholder="Senha...">
-                </div>
-                <button class="btn-action" id="admin-login-submit" style="width: 100%;">Entrar</button>
-            </div>
-            <div class="config-card" id="admin-panel-box" style="display: none; max-height: 280px; overflow-y: auto;">
-                <div style="color: #38bdf8; font-weight: bold; font-size: 0.9rem;">Painel Desbloqueado 🔓</div>
-                <div class="config-row">
-                    <span>Adicionar Moedas:</span>
-                    <div style="display: flex; gap: 6px;">
-                        <input type="number" id="admin-coins-input" class="config-input" value="100" style="width: 70px;">
-                        <button class="btn-action" id="admin-add-coins-btn">Adicionar</button>
-                    </div>
-                </div>
-                <div style="color: #fbbf24; font-weight: bold; font-size: 0.85rem; margin-top: 4px;">Gerenciar Conquistas:</div>
-                <div id="admin-achievements-list" style="display: flex; flex-direction: column; gap: 6px;"></div>
-            </div>
-            <button class="btn-main" id="close-admin-btn">Voltar</button>
-        </div>
-
-        <!-- TELA DE CONQUISTAS -->
-        <div class="overlay" id="achievements-modal">
-            <h1 class="modal-title" style="font-size: 1.5rem; margin-bottom: -5px; color: #fbbf24;">CONQUISTAS</h1>
-            <div class="list-wrapper">
-                <div class="list-items-side" style="flex: 1;">
-                    <div class="items-list" id="achievements-list-container"></div>
-                </div>
-            </div>
-            <button class="btn-main" id="close-achievements-btn">Voltar</button>
-        </div>
-
-        <!-- TELA DE SHOPPING REESTRUTURADA COM BOTÕES DE PREVIEW -->
-        <div class="overlay" id="shop-modal">
-            <h1 class="modal-title" style="font-size: 1.3rem; margin-bottom: -4px;">LOJA DE CUSTOMIZAÇÃO</h1>
-            <div class="shop-wrapper">
-                <div class="shop-preview-side">
-                    <div class="preview-box">
-                        <canvas id="previewCanvas" width="110" height="150"></canvas>
-                    </div>
-                    <!-- Botões de Preview de Visualização -->
-                    <div class="preview-controls">
-                        <button class="preview-btn active" data-preview-mode="bird">Pássaro</button>
-                        <button class="preview-btn" data-preview-mode="skin">Roupa</button>
-                        <button class="preview-btn" data-preview-mode="pipe">Colunas</button>
-                        <button class="preview-btn" data-preview-mode="bg">Fundo</button>
-                    </div>
-                    <span id="shop-coins-display" style="font-size: 0.9rem; color: #fbbf24; font-weight: 800;">🪙 0</span>
-                </div>
-                <div class="shop-items-side">
-                    <!-- Abas Principais -->
-                    <div class="shop-tabs-main">
-                        <button class="tab-btn active" data-main="bird">Pássaro</button>
-                        <button class="tab-btn" data-main="scene">Cenário</button>
-                    </div>
-                    <!-- Abas Secundárias Dinâmicas -->
-                    <div class="shop-tabs-sub" id="shop-sub-tabs">
-                        <button class="tab-btn active" data-sub="colors">Cores</button>
-                        <button class="tab-btn" data-sub="skins">Roupas</button>
-                    </div>
-                    <div class="items-list" id="items-list-container"></div>
-                </div>
-            </div>
-            <button class="btn-main" id="close-shop-btn">Voltar ao Jogo</button>
-        </div>
-
-        <!-- TELA DE GAME OVER -->
-        <div class="overlay" id="game-over-screen">
-            <h1 class="modal-title" style="color: #f43f5e; text-shadow: 0 2px 10px rgba(244, 63, 94, 0.3);">DERROTA!</h1>
-            <div class="stats-card">
-                <div class="stat-row">
-                    <span>Pontos:</span>
-                    <span class="stat-val" id="final-score" style="font-weight: 700; color: #fff;">0</span>
-                </div>
-                <div class="stat-row">
-                    <span>Moedas Pegas:</span>
-                    <span class="stat-val" id="final-coins" style="font-weight: 700; color: #fbbf24;">0</span>
-                </div>
-                <div class="stat-row">
-                    <span>Recorde Máximo:</span>
-                    <span class="stat-val" id="high-score" style="font-weight: 700; color: #38bdf8;">0</span>
-                </div>
-            </div>
-            <button class="btn-main" id="restart-btn">Jogar Novamente</button>
-        </div>
+    <div class="skin-market-card">
+      <div>
+        <strong>Clássico</strong><br><small style="color: var(--note-color);">O visual original padrão (Grátis)</small>
+      </div>
+      <button class="action-btn" id="skin-btn-classic" onclick="selectSkin('classic')">Usar</button>
     </div>
 
-    <script>
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
+    <div class="skin-market-card">
+      <div>
+        <strong>Esmeralda Minimal</strong><br><small style="color: var(--note-color);">Tons verdes limpos (Grátis)</small>
+      </div>
+      <div style="display: flex; gap: 6px;">
+        <button class="action-btn" style="background-color: #64748b;" onclick="previewSkin('emerald')">Preview</button>
+        <button class="action-btn" id="skin-btn-emerald" onclick="buyOrSelectSkin('emerald', 0)">Usar</button>
+      </div>
+    </div>
 
-        const scoreDisplay = document.getElementById('score-display');
-        const coinsDisplay = document.getElementById('coins-display');
-        const shopCoinsDisplay = document.getElementById('shop-coins-display');
-        const pauseBtn = document.getElementById('pause-btn');
-        const configBtn = document.getElementById('config-btn');
-        const shopBtn = document.getElementById('shop-btn');
-        const toastBanner = document.getElementById('toast-banner');
-        const boostersHud = document.getElementById('boosters-hud');
+    <div class="skin-market-card">
+      <div>
+        <strong>Neon Cyber</strong><br><small style="color: var(--note-color);">Estilo futurista brilhante (50 pts)</small>
+      </div>
+      <div style="display: flex; gap: 6px;">
+        <button class="action-btn" style="background-color: #64748b;" onclick="previewSkin('neon')">Preview</button>
+        <button class="action-btn" id="skin-btn-neon" onclick="buyOrSelectSkin('neon', 50)">Comprar</button>
+      </div>
+    </div>
+
+    <div class="skin-market-card">
+      <div>
+        <strong>Retrô Vintage</strong><br><small style="color: var(--note-color);">Tons pastéis aconchegantes (100 pts)</small>
+      </div>
+      <div style="display: flex; gap: 6px;">
+        <button class="action-btn" style="background-color: #64748b;" onclick="previewSkin('retro')">Preview</button>
+        <button class="action-btn" id="skin-btn-retro" onclick="buyOrSelectSkin('retro', 100)">Comprar</button>
+      </div>
+    </div>
+
+    <div class="skin-market-card">
+      <div>
+        <strong>Pôr do Sol VIP</strong><br><small style="color: var(--note-color);">Visual exclusivo premium (200 pts)</small>
+      </div>
+      <div style="display: flex; gap: 6px;">
+        <button class="action-btn" style="background-color: #64748b;" onclick="previewSkin('sunset')">Preview</button>
+        <button class="action-btn" id="skin-btn-sunset" onclick="buyOrSelectSkin('sunset', 200)">Comprar</button>
+      </div>
+    </div>
+
+    <!-- NOVOS TEMAS -->
+    <div class="skin-market-card">
+      <div>
+        <strong>🟣 Roxinho Lavender</strong><br><small style="color: var(--note-color);">Tons roxos relaxantes (75 pts)</small>
+      </div>
+      <div style="display: flex; gap: 6px;">
+        <button class="action-btn" style="background-color: #64748b;" onclick="previewSkin('roxinho')">Preview</button>
+        <button class="action-btn" id="skin-btn-roxinho" onclick="buyOrSelectSkin('roxinho', 75)">Comprar</button>
+      </div>
+    </div>
+
+    <div class="skin-market-card">
+      <div>
+        <strong>🎀 Coquette</strong><br><small style="color: var(--note-color);">Estilo delicado e rosadinho (120 pts)</small>
+      </div>
+      <div style="display: flex; gap: 6px;">
+        <button class="action-btn" style="background-color: #64748b;" onclick="previewSkin('coquette')">Preview</button>
+        <button class="action-btn" id="skin-btn-coquette" onclick="buyOrSelectSkin('coquette', 120)">Comprar</button>
+      </div>
+    </div>
+
+    <div class="skin-market-card">
+      <div>
+        <strong>🩸 ULTRAMODEL / Ultrakill</strong><br><small style="color: var(--note-color);">Preto, branco e carmesim (250 pts)</small>
+      </div>
+      <div style="display: flex; gap: 6px;">
+        <button class="action-btn" style="background-color: #64748b;" onclick="previewSkin('ultrakill')">Preview</button>
+        <button class="action-btn" id="skin-btn-ultrakill" onclick="buyOrSelectSkin('ultrakill', 250)">Comprar</button>
+      </div>
+    </div>
+
+    <div class="skin-market-card" id="card-skin-golden">
+      <div>
+        <strong>👑 Dourado VIP</strong><br><small style="color: var(--note-color);" id="golden-desc">Desbloqueie conquistando 1 troféu</small>
+      </div>
+      <div style="display: flex; gap: 6px;" id="golden-actions">
+        <button class="action-btn" style="background-color: #64748b;" onclick="previewSkin('golden')">Preview</button>
+        <button class="action-btn" id="skin-btn-golden" onclick="buyOrSelectSkin('golden', 0)">Bloqueado</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="main-wrapper">
+  <div class="top-section">
+    <div class="container">
+      <h1>Sudoku Pro</h1>
+
+      <div class="hud-bar">
+        <div id="timer-wrapper">⏱️ <span id="timer-display">00:00</span> <button class="btn-hud" id="btn-pause" style="margin-left: 6px;">Pausar</button></div>
+        <button class="btn-hud btn-hint" id="btn-hint">💡 Dica (<span id="hint-count">3</span>)</button>
+      </div>
+
+      <div class="controls">
+        <div class="row">
+          <label>Dificuldade:
+            <select id="difficulty">
+              <option value="easy">Fácil</option>
+              <option value="medium" selected>Médio</option>
+              <option value="hard">Difícil</option>
+              <option value="master" id="opt-master" disabled>🔒 Mestre (Bloqueado)</option>
+              <option value="legendary" id="opt-legendary" disabled>🔒 Lendário (Bloqueado)</option>
+            </select>
+          </label>
+          <div style="display:flex; gap:6px;">
+            <button class="focus-btn" id="btn-toggle-focus">🎯 Foco</button>
+            <button class="action-btn" id="btn-daily">📅 Diário</button>
+            <button class="action-btn" id="btn-new">Novo</button>
+            <button class="action-btn" id="btn-reset">Reset</button>
+          </div>
+        </div>
+
+        <div class="row">
+          <button class="mode-btn" id="btn-mode-toggle">✍️ Modo: Número (N)</button>
+          <span id="error-counter" style="font-size: 12px; font-weight: bold;">Erros: 0/3</span>
+        </div>
+      </div>
+
+      <div class="status" id="status-message"></div>
+      
+      <div class="board-wrapper">
+        <div id="countdown-overlay" class="countdown-overlay"><span id="countdown-text">3</span></div>
+        <div id="board" class="sudoku-board"></div>
+      </div>
+
+      <div class="numpad">
+        <button id="num-btn-1" onclick="inputNumber(1)">1</button>
+        <button id="num-btn-2" onclick="inputNumber(2)">2</button>
+        <button id="num-btn-3" onclick="inputNumber(3)">3</button>
+        <button id="num-btn-4" onclick="inputNumber(4)">4</button>
+        <button id="num-btn-5" onclick="inputNumber(5)">5</button>
+        <button id="num-btn-6" onclick="inputNumber(6)">6</button>
+        <button id="num-btn-7" onclick="inputNumber(7)">7</button>
+        <button id="num-btn-8" onclick="inputNumber(8)">8</button>
+        <button id="num-btn-9" onclick="inputNumber(9)">9</button>
+        <button class="erase" onclick="inputNumber(0)">⌫</button>
+        <button class="undo" onclick="undoLastMove()">↩️</button>
+      </div>
+    </div>
+
+    <div class="sidebar">
+      <div>
+        <h2>🏆 Melhores Tempos</h2>
+        <div style="font-size: 13px; display: flex; flex-direction: column; gap: 8px;">
+          <div>🟢 Fácil: <strong id="best-easy">--:--</strong></div>
+          <div>🟡 Médio: <strong id="best-medium">--:--</strong></div>
+          <div>🔴 Difícil: <strong id="best-hard">--:--</strong></div>
+          <div id="best-master-container" style="display:none; color: var(--hint-color);">🔥 Mestre: <strong id="best-master">--:--</strong></div>
+          <div id="best-legendary-container" style="display:none; color: #a855f7;">🐉 Lendário: <strong id="best-legendary">--:--</strong></div>
+        </div>
+      </div>
+
+      <div>
+        <h2>🏅 Conquistas</h2>
+        <div class="badges-grid">
+          <div class="badge-card" id="badge-fast" onclick="showAchievementInfo('⚡ Flash', 'Vença qualquer partida em menos de 3 minutos.')">⚡ Flash (&lt;3min)</div>
+          <div class="badge-card" id="badge-lightning" onclick="showAchievementInfo('⚡ Relâmpago', 'Vença qualquer partida em menos de 1 minuto e meio (90 segundos).')">⚡ Relâmpago (&lt;1.5min)</div>
+          <div class="badge-card" id="badge-perfect" onclick="showAchievementInfo('🎯 Perfeito', 'Vença uma partida sem cometer nenhum erro.')">🎯 Perfeito (0 erros)</div>
+          <div class="badge-card" id="badge-nohint" onclick="showAchievementInfo('🧐 Estrategista', 'Vença sem usar nenhuma dica.')">🧐 Estratégia (0 dicas)</div>
+          <div class="badge-card" id="badge-streak" onclick="showAchievementInfo('🔥 Streak', 'Vença 3 partidas seguidas.')">🔥 Streak (3 jogos)</div>
+          <div class="badge-card" id="badge-daily" onclick="showAchievementInfo('📅 Foco Diário', 'Complete com sucesso um Desafio Diário.')">📅 Foco Diário</div>
+          
+          <div class="badge-card special-unlock" id="badge-unlock-master" style="grid-column: span 2;" onclick="showAchievementInfo('🔥 Desbravador', 'Vença uma partida na dificuldade Difícil para desbloquear o nível MESTRE.')">🔒 Desbravador (Mestre)</div>
+          <div class="badge-card special-unlock" id="badge-unlock-legendary" style="grid-column: span 2;" onclick="showAchievementInfo('🐉 Deus do Sudoku', 'Vença uma partida na dificuldade Mestre com ZERO erros para desbloquear o modo LENDÁRIO.')">🔒 Deus do Sudoku (Lendário)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-section">
+    <h3>📜 Histórico de Partidas</h3>
+    <table class="history-table">
+      <thead>
+        <tr><th>Modo</th><th>Tempo</th><th>Resultado</th><th>Erros</th></tr>
+      </thead>
+      <tbody id="history-body"></tbody>
+    </table>
+  </div>
+</div>
+
+<footer>
+  <p>&copy; 2026 Sudoku Pro. Todos os direitos reservados. Desenvolvido por <a href="https://github.com/korakiThanatou" target="_blank">korakiThanatou</a>.</p>
+</footer>
+
+<!-- MODAL PARA CÓDIGO CTRL+B -->
+<div class="modal-overlay" id="secret-code-modal">
+  <div class="modal-card">
+    <h2>🔐 Código Secreto</h2>
+    <p style="font-size: 13px; color: var(--note-color); margin: 12px 0;">Digite o código de acesso especial:</p>
+    <form onsubmit="event.preventDefault(); submitSecretCode();">
+      <input type="password" id="secret-code-input" placeholder="Código..." style="width: 100%; text-align: center; margin-bottom: 14px;">
+      <div style="display: flex; gap: 8px;">
+        <button type="submit" class="action-btn" style="flex: 1; padding: 10px;">Desbloquear</button>
+        <button type="button" class="action-btn" style="flex: 1; padding: 10px; background-color: #64748b;" onclick="closeSecretCodeModal()">Cancelar</button>
+      </div>
+    </form>
+    <div id="secret-code-error" style="font-size: 12px; color: var(--error-color); margin-top: 8px;"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="achievement-modal">
+  <div class="modal-card">
+    <h2 id="achieve-title">🏅 Conquista</h2>
+    <p id="achieve-desc" style="font-size: 14px; margin: 16px 0; line-height: 1.4; color: var(--text-color);"></p>
+    <button class="action-btn" style="width: 100%; padding: 10px;" onclick="closeAchievementModal()">Entendido</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="win-modal">
+  <div class="modal-card">
+    <h2>🎉 VITÓRIA! 🎉</h2>
+    <div style="margin: 14px 0; font-size: 14px;">
+      ⏱️ Tempo: <span id="win-time">--:--</span> | ❌ Erros: <span id="win-errors">0</span><br>
+      🪙 Pontos Ganhos: <strong id="win-points" style="color: var(--hint-color);">+0</strong>
+    </div>
+    <div id="unlock-message" style="display:none; color: var(--hint-color); font-weight: bold; margin-bottom: 14px;"></div>
+    <button class="action-btn" style="width: 100%; padding: 10px;" onclick="closeWinModal()">Continuar</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="epic-win-modal">
+  <div class="modal-card epic-modal-card">
+    <h2 style="color: var(--hint-color); border-bottom-color: var(--hint-color);">🌟 LENDA DO SUDOKU 🌟</h2>
+    <div class="epic-trophy">🏆</div>
+    <p style="font-size: 14px; line-height: 1.4; margin: 12px 0;">Você desbloqueou absolutamente <strong>todas as conquistas</strong>! Sua dedicação é lendária.</p>
+    <div style="margin: 15px 0;">
+      <label style="font-size: 13px; display: block; margin-bottom: 6px; color: var(--hint-color);">Digite seu nome para o Troféu:</label>
+      <input type="text" id="trophy-owner-name" placeholder="Seu nome..." style="width: 100%; text-align: center; font-weight: bold; background: rgba(255,255,255,0.05); color: #fff; border-color: var(--hint-color);">
+    </div>
+    <button class="action-btn" style="width: 100%; padding: 10px; background-color: var(--hint-color); color: #000; font-weight: bold;" onclick="claimEpicTrophy()">Resgatar Troféu e Reiniciar 🚀</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="easter-egg-modal">
+  <div class="modal-card">
+    <div class="love-card" id="love-message-text">Eu te amo, Benj &lt;3</div>
+    <button class="action-btn" style="padding: 8px 20px;" onclick="closeEasterEggModal()">fofo ✨</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="preview-modal">
+  <div class="modal-card" id="preview-modal-card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+      <h2 style="margin:0; border:none; padding:0;">🎨 Preview do Estilo</h2>
+      <button class="btn-hud" id="btn-preview-theme-toggle" onclick="togglePreviewTheme()" style="background: var(--card-bg); border: 1px solid var(--light-border); color: var(--text-color);">☀️ Light</button>
+    </div>
+    <p id="preview-desc" style="font-size: 13px; margin: 8px 0 12px 0; color: var(--note-color);"></p>
+    <div class="board-wrapper" style="max-width: 260px; margin: 10px auto;">
+      <div id="preview-board" class="sudoku-board"></div>
+    </div>
+    <button class="action-btn" style="width: 100%; padding: 10px; margin-top: 10px;" onclick="closePreviewModal()">Fechar Preview</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="admin-achievements-modal">
+  <div class="modal-card" style="max-width: 450px;">
+    <h2>⚙️ Gerenciar Conquistas (Admin)</h2>
+    <p style="font-size: 12px; color: var(--note-color); margin-bottom: 10px;">Ative ou desative individualmente cada conquista abaixo:</p>
+    <div class="admin-achievements-list" id="admin-achievements-container"></div>
+    <button class="action-btn" style="width: 100%; padding: 10px; margin-top: 10px;" onclick="closeAdminAchievementsModal()">Concluir</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="confirm-modal">
+  <div class="modal-card" style="max-width: 340px;">
+    <h2>⚠️ Confirmação</h2>
+    <p id="confirm-message" style="font-size: 14px; margin: 16px 0; line-height: 1.4;"></p>
+    <div style="display: flex; gap: 10px;">
+      <button class="action-btn" style="flex: 1; padding: 10px; background-color: var(--error-color);" id="confirm-yes-btn">Sim</button>
+      <button class="action-btn" style="flex: 1; padding: 10px; background-color: #64748b;" onclick="closeConfirmModal(false)">Não</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="alert-modal">
+  <div class="modal-card" style="max-width: 340px;">
+    <h2>ℹ️ Aviso</h2>
+    <p id="alert-message" style="font-size: 14px; margin: 16px 0; line-height: 1.4;"></p>
+    <button class="action-btn" style="width: 100%; padding: 10px;" onclick="closeAlertModal()">OK</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="settings-modal">
+  <div class="modal-card">
+    <h2>⚙️ Configurações Gerais</h2>
+    <div class="switch-container"><span>✏️ Mostrar Botão Rascunho:</span><input type="checkbox" id="toggle-draft" checked style="transform: scale(1.3); cursor: pointer;"></div>
+    <div class="switch-container"><span>⏱️ Mostrar Cronômetro:</span><input type="checkbox" id="toggle-timer" checked style="transform: scale(1.3); cursor: pointer;"></div>
+    <div class="switch-container"><span>💡 Mostrar Botão de Dicas:</span><input type="checkbox" id="toggle-hints" checked style="transform: scale(1.3); cursor: pointer;"></div>
+    <div class="switch-container"><span>❌ Mostrar Contador de Erros:</span><input type="checkbox" id="toggle-errors" checked style="transform: scale(1.3); cursor: pointer;"></div>
+
+    <div id="admin-login-section" style="margin-top: 18px; border-top: 1px solid var(--light-border); padding-top: 14px;">
+      <p style="font-size: 13px; margin-bottom: 8px;">🔒 <strong>Modo Admin:</strong></p>
+      <form onsubmit="event.preventDefault(); checkAdminPassword();" style="display: flex; gap: 6px; justify-content: center;">
+        <input type="password" id="admin-pass-input" placeholder="Digite a senha..." style="width: 150px;">
+        <button type="submit" class="action-btn">Entrar</button>
+      </form>
+      <div id="admin-error-msg" style="font-size: 11px; color: var(--error-color); margin-top: 6px;"></div>
+    </div>
+    
+    <div id="admin-panel" style="display: none; border-top: 1px solid var(--light-border); padding-top: 14px; margin-top: 14px;">
+      <p style="font-size: 13px; color: var(--correct-color); font-weight: bold; margin: 0 0 10px 0;">✅ Modo Admin Ativado!</p>
+      <div class="switch-container"><span>💡 Dicas Infinitas:</span><input type="checkbox" id="infinite-hints-toggle" style="transform: scale(1.3); cursor: pointer;"></div>
+      
+      <div style="margin: 10px 0; display: flex; flex-direction: column; gap: 6px; text-align: left;">
+        <label style="font-size: 12px; font-weight: bold;">🪙 Adicionar Pontos:</label>
+        <div style="display: flex; gap: 6px;">
+          <input type="number" id="admin-add-points-input" value="100" min="1" style="flex: 1;">
+          <button class="action-btn" style="background-color: var(--hint-color); color: #000;" onclick="adminAddPoints()">Adicionar</button>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 12px;">
+        <button class="action-btn" style="background-color: #8b5cf6;" onclick="openAdminAchievementsModal()">🏅 Gerenciar Conquistas</button>
+        <button class="action-btn" style="background-color: #2563eb;" onclick="adminUnlockAllAchievements()">✨ Desbloquear Todas</button>
+        <button class="action-btn" style="background-color: #ef4444;" onclick="adminResetAchievements()">🔄 Resetar Conquistas</button>
+        <button class="action-btn" style="background-color: #d97706;" onclick="adminClearRecords()">🗑️ Limpar Apenas Recordes</button>
+        <button class="action-btn" style="background-color: #b91c1c;" onclick="adminClearHistory()">🗑️ Limpar Apenas Histórico</button>
+      </div>
+    </div>
+
+    <button class="action-btn" style="width: 100%; padding: 10px; margin-top: 18px;" onclick="closeSettingsModal()">Fechar</button>
+  </div>
+</div>
+
+<script>
+  const ADMIN_PASSWORD = "1234";
+
+  const baseSolution = [
+    [5,3,4,6,7,8,9,1,2],[6,7,2,1,9,5,3,4,8],[1,9,8,3,4,2,5,6,7],
+    [8,5,9,7,6,1,4,2,3],[4,2,6,8,5,3,7,9,1],[7,1,3,9,2,4,8,5,6],
+    [9,6,1,5,3,7,2,8,4],[2,8,7,4,1,9,6,3,5],[3,4,5,2,8,6,1,7,9]
+  ];
+
+  const loveMessages = ["Eu te amo, Benj <3", "Você é meu lugar favorito no mundo! 💖", "Orgulho demais de você! ✨"];
+  let loveMsgIndex = 0;
+
+  let currentSolution = [], initialBoard = [], userBoard = [], notesBoard = [];
+  let moveHistory = [], selectedCell = null;
+  let errorCount = 0, hintsLeft = 3, hintsUsedInGame = 0;
+  let timerSeconds = 0, timerInterval = null, isPaused = false;
+  let isNoteMode = false, isDailyGame = false, isAdminLoggedIn = false, infiniteHintsEnabled = false;
+  let streakCount = parseInt(localStorage.getItem('sudoku_streak') || '0');
+
+  let playerPoints = parseInt(localStorage.getItem('sudoku_points') || '0');
+  let unlockedSkins = JSON.parse(localStorage.getItem('sudoku_unlocked_skins') || '["classic", "emerald"]');
+  let activeSkin = localStorage.getItem('sudoku_active_skin') || 'classic';
+
+  let unlockedAchievements = JSON.parse(localStorage.getItem('sudoku_achievements') || '[]');
+  let earnedTrophies = JSON.parse(localStorage.getItem('sudoku_trophies') || '[]');
+
+  let previewCurrentSkin = 'classic';
+  let previewIsLight = false;
+
+  const achievementMeta = {
+    'badge-fast': { name: '⚡ Flash (<3min)', desc: 'Vença qualquer partida em menos de 3 minutos.' },
+    'badge-lightning': { name: '⚡ Relâmpago (<1.5min)', desc: 'Vença qualquer partida em menos de 1 minuto e meio.' },
+    'badge-perfect': { name: '🎯 Perfeito (0 erros)', desc: 'Vença uma partida sem cometer nenhum erro.' },
+    'badge-nohint': { name: '🧐 Estrategista (0 dicas)', desc: 'Vença sem usar nenhuma dica.' },
+    'badge-streak': { name: '🔥 Streak (3 jogos)', desc: 'Vença 3 partidas seguidas.' },
+    'badge-daily': { name: '📅 Foco Diário', desc: 'Complete com sucesso um Desafio Diário.' },
+    'badge-unlock-master': { name: '🔒 Desbravador (Mestre)', desc: 'Vença no Difícil para desbloquear o Mestre.' },
+    'badge-unlock-legendary': { name: '🔒 Deus do Sudoku (Lendário)', desc: 'Vença no Mestre sem erros para desbloquear o Lendário.' }
+  };
+
+  const allAchievementIds = Object.keys(achievementMeta);
+
+  const boardEl = document.getElementById('board');
+  const difficultyEl = document.getElementById('difficulty');
+  const statusEl = document.getElementById('status-message');
+  const timerDisplay = document.getElementById('timer-display');
+  const btnModeToggle = document.getElementById('btn-mode-toggle');
+  const hintCountEl = document.getElementById('hint-count');
+  const errorCounterEl = document.getElementById('error-counter');
+
+  function updatePointsDisplay() {
+    document.getElementById('points-display').textContent = playerPoints;
+    document.getElementById('market-points-count').textContent = playerPoints;
+    localStorage.setItem('sudoku_points', playerPoints);
+  }
+
+  const marketDrawer = document.getElementById('market-drawer');
+  document.getElementById('btn-open-market').addEventListener('click', () => {
+    updateMarketUI();
+    marketDrawer.classList.add('active');
+  });
+  document.getElementById('btn-close-market').addEventListener('click', () => {
+    marketDrawer.classList.remove('active');
+  });
+
+  function updateMarketUI() {
+    updatePointsDisplay();
+    const skins = ['classic', 'emerald', 'neon', 'retro', 'sunset', 'roxinho', 'coquette', 'ultrakill', 'golden'];
+    const prices = { classic: 0, emerald: 0, neon: 50, retro: 100, sunset: 200, roxinho: 75, coquette: 120, ultrakill: 250, golden: 0 };
+
+    const hasTrophy = earnedTrophies.length > 0;
+    const goldenCard = document.getElementById('card-skin-golden');
+    const goldenDesc = document.getElementById('golden-desc');
+
+    if (hasTrophy) {
+      goldenDesc.textContent = 'Tema dourado exclusivo (Desbloqueado!)';
+      if (!unlockedSkins.includes('golden')) {
+        unlockedSkins.push('golden');
+        localStorage.setItem('sudoku_unlocked_skins', JSON.stringify(unlockedSkins));
+      }
+    } else {
+      goldenDesc.textContent = 'Desbloqueie conquistando pelo menos 1 troféu';
+    }
+
+    skins.forEach(skin => {
+      const btn = document.getElementById(`skin-btn-${skin}`);
+      if (!btn) return;
+      const isOwned = unlockedSkins.includes(skin);
+      const isActive = (activeSkin === skin);
+
+      if (isActive) {
+        btn.textContent = 'Em Uso';
+        btn.disabled = true;
+        btn.style.backgroundColor = 'var(--correct-color)';
+        btn.style.color = '#fff';
+      } else if (isOwned) {
+        btn.textContent = 'Selecionar';
+        btn.disabled = false;
+        btn.style.backgroundColor = 'var(--primary-color)';
+        btn.style.color = '#fff';
+      } else {
+        if (skin === 'golden') {
+          btn.textContent = 'Bloqueado';
+          btn.disabled = true;
+          btn.style.backgroundColor = 'var(--locked-color)';
+          btn.style.color = '#fff';
+        } else {
+          btn.textContent = `Comprar (${prices[skin]} pts)`;
+          btn.disabled = false;
+          btn.style.backgroundColor = 'var(--hint-color)';
+          btn.style.color = '#000';
+        }
+      }
+    });
+  }
+
+  function buyOrSelectSkin(skinName, price) {
+    if (skinName === 'golden' && earnedTrophies.length === 0) {
+      showCustomAlert('Você precisa conquistar pelo menos 1 troféu para desbloquear o tema Dourado VIP!');
+      return;
+    }
+
+    if (unlockedSkins.includes(skinName)) {
+      selectSkin(skinName);
+    } else {
+      if (playerPoints >= price) {
+        playerPoints -= price;
+        unlockedSkins.push(skinName);
+        localStorage.setItem('sudoku_unlocked_skins', JSON.stringify(unlockedSkins));
+        selectSkin(skinName);
+        showCustomAlert('Skin comprada com sucesso!');
+      } else {
+        showCustomAlert('Pontos insuficientes para comprar esta skin!');
+      }
+    }
+  }
+
+  function selectSkin(skinName) {
+    if (skinName === 'golden' && earnedTrophies.length === 0) {
+      showCustomAlert('Tema bloqueado! Conquiste um troféu primeiro.');
+      return;
+    }
+    activeSkin = skinName;
+    localStorage.setItem('sudoku_active_skin', activeSkin);
+    applyActiveSkinToBoard();
+    updateMarketUI();
+  }
+
+  function applyActiveSkinToBoard() {
+    document.body.classList.remove('skin-neon', 'skin-retro', 'skin-emerald', 'skin-sunset', 'skin-golden', 'skin-roxinho', 'skin-coquette', 'skin-ultrakill');
+    boardEl.className = 'sudoku-board';
+    if (activeSkin !== 'classic') {
+      document.body.classList.add(`skin-${activeSkin}`);
+      boardEl.classList.add(`skin-${activeSkin}`);
+    }
+  }
+
+  function previewSkin(skinName) {
+    previewCurrentSkin = skinName;
+    previewIsLight = false;
+    renderPreviewBoard();
+    document.getElementById('preview-modal').classList.add('active');
+  }
+
+  function togglePreviewTheme() {
+    previewIsLight = !previewIsLight;
+    renderPreviewBoard();
+  }
+
+  function renderPreviewBoard() {
+    const previewBoard = document.getElementById('preview-board');
+    const previewDesc = document.getElementById('preview-desc');
+    const toggleBtn = document.getElementById('btn-preview-theme-toggle');
+    const modalCard = document.getElementById('preview-modal-card');
+
+    toggleBtn.textContent = previewIsLight ? '🌙 Dark' : '☀️ Light';
+    previewDesc.textContent = `Visualização rápida do tema: ${previewCurrentSkin.toUpperCase()} (${previewIsLight ? 'Modo Claro' : 'Modo Escuro'})`;
+
+    modalCard.className = 'modal-card ' + (previewIsLight ? 'light-mode' : '');
+    
+    previewBoard.className = 'sudoku-board';
+    if (previewCurrentSkin !== 'classic') {
+      previewBoard.classList.add(`skin-${previewCurrentSkin}`);
+    }
+
+    previewBoard.innerHTML = '';
+    
+    for (let r = 0; r < 9; r++) {
+      for (let c = 0; c < 9; c++) {
+        const cell = document.createElement('div');
+        cell.classList.add('cell');
+        if (previewIsLight) {
+          cell.style.background = '#ffffff';
+          cell.style.borderColor = '#e2e8f0';
+          cell.style.color = '#0f172a';
+        }
+        cell.style.fontSize = '11px';
+        const sampleVal = baseSolution[r][c];
+        if (sampleVal % 2 === 0) {
+          cell.textContent = sampleVal;
+          cell.classList.add('correct');
+        }
+        previewBoard.appendChild(cell);
+      }
+    }
+  }
+
+  function closePreviewModal() {
+    document.getElementById('preview-modal').classList.remove('active');
+  }
+
+  function adminAddPoints() {
+    const qty = parseInt(document.getElementById('admin-add-points-input').value);
+    if (isNaN(qty) || qty <= 0) {
+      showCustomAlert('Insira uma quantidade válida de pontos.');
+      return;
+    }
+    playerPoints += qty;
+    updatePointsDisplay();
+    showCustomAlert(`Adicionado ${qty} pontos com sucesso!`);
+  }
+
+  let confirmCallback = null;
+  function showCustomAlert(msg) {
+    document.getElementById('alert-message').textContent = msg;
+    document.getElementById('alert-modal').classList.add('active');
+  }
+  function closeAlertModal() {
+    document.getElementById('alert-modal').classList.remove('active');
+  }
+
+  function showCustomConfirm(msg, callback) {
+    document.getElementById('confirm-message').textContent = msg;
+    confirmCallback = callback;
+    document.getElementById('confirm-modal').classList.add('active');
+  }
+  function closeConfirmModal(result) {
+    document.getElementById('confirm-modal').classList.remove('active');
+    if (confirmCallback) {
+      confirmCallback(result);
+      confirmCallback = null;
+    }
+  }
+  document.getElementById('confirm-yes-btn').addEventListener('click', () => closeConfirmModal(true));
+
+  function initGlobalSettings() {
+    const settingsMap = {
+      'toggle-draft': 'sudoku_cfg_draft',
+      'toggle-timer': 'sudoku_cfg_timer',
+      'toggle-hints': 'sudoku_cfg_hints',
+      'toggle-errors': 'sudoku_cfg_errors'
+    };
+
+    for (const [elementId, storageKey] of Object.entries(settingsMap)) {
+      const el = document.getElementById(elementId);
+      const savedVal = localStorage.getItem(storageKey);
+      
+      if (savedVal !== null) {
+        el.checked = (savedVal === 'true');
+      }
+
+      applySettingChange(elementId, el.checked);
+
+      el.addEventListener('change', (e) => {
+        localStorage.setItem(storageKey, e.target.checked);
+        applySettingChange(elementId, e.target.checked);
+      });
+    }
+  }
+
+  function applySettingChange(elementId, isChecked) {
+    if (elementId === 'toggle-draft') {
+      document.getElementById('btn-mode-toggle').style.display = isChecked ? 'block' : 'none';
+    } else if (elementId === 'toggle-timer') {
+      document.getElementById('timer-wrapper').style.display = isChecked ? 'block' : 'none';
+    } else if (elementId === 'toggle-hints') {
+      document.getElementById('btn-hint').style.display = isChecked ? 'block' : 'none';
+    } else if (elementId === 'toggle-errors') {
+      errorCounterEl.style.display = isChecked ? 'inline' : 'none';
+    }
+  }
+
+  function initAchievements() {
+    allAchievementIds.forEach(badgeId => {
+      const badgeEl = document.getElementById(badgeId);
+      if (badgeEl) {
+        if (unlockedAchievements.includes(badgeId)) {
+          badgeEl.classList.add('unlocked');
+          if (badgeId === 'badge-unlock-master') badgeEl.textContent = '🔥 Desbravador (Desbloqueado)';
+          if (badgeId === 'badge-unlock-legendary') badgeEl.textContent = '🔒 Deus do Sudoku (Desbloqueado)';
+        } else {
+          badgeEl.classList.remove('unlocked');
+          if (badgeId === 'badge-unlock-master') badgeEl.textContent = '🔒 Desbravador (Mestre)';
+          if (badgeId === 'badge-unlock-legendary') badgeEl.textContent = '🔒 Deus do Sudoku (Lendário)';
+        }
+      }
+    });
+    
+    const hasMaster = unlockedAchievements.includes('badge-unlock-master');
+    const hasLegendary = unlockedAchievements.includes('badge-unlock-legendary');
+    
+    const optMaster = document.getElementById('opt-master');
+    optMaster.disabled = !hasMaster;
+    optMaster.textContent = hasMaster ? '🔥 Mestre' : '🔒 Mestre (Bloqueado)';
+    document.getElementById('best-master-container').style.display = hasMaster ? 'block' : 'none';
+
+    const optLegendary = document.getElementById('opt-legendary');
+    optLegendary.disabled = !hasLegendary;
+    optLegendary.textContent = hasLegendary ? '🐉 Lendário' : '🔒 Lendário (Bloqueado)';
+    document.getElementById('best-legendary-container').style.display = hasLegendary ? 'block' : 'none';
+
+    renderTrophiesShelf();
+  }
+
+  function renderTrophiesShelf() {
+    const container = document.getElementById('trophies-container');
+    container.innerHTML = '';
+    if (earnedTrophies.length === 0) {
+      document.getElementById('trophies-shelf').style.display = 'none';
+      return;
+    }
+    document.getElementById('trophies-shelf').style.display = 'flex';
+    earnedTrophies.forEach((trophy, index) => {
+      const div = document.createElement('div');
+      div.className = 'trophy-badge';
+      div.title = `Troféu #${index + 1} de ${trophy.name}`;
+      div.innerHTML = `🏆 ${trophy.name}`;
+      container.appendChild(div);
+    });
+  }
+
+  function awardAchievement(badgeId, unlockMessage = null) {
+    if (!unlockedAchievements.includes(badgeId)) {
+      unlockedAchievements.push(badgeId);
+      localStorage.setItem('sudoku_achievements', JSON.stringify(unlockedAchievements));
+      initAchievements();
+
+      if (unlockMessage) {
+        const unlockMsgEl = document.getElementById('unlock-message');
+        unlockMsgEl.style.display = 'block';
+        unlockMsgEl.innerHTML = unlockMessage;
+      }
+    }
+  }
+
+  function checkAllAchievementsCompleted() {
+    return allAchievementIds.every(id => unlockedAchievements.includes(id));
+  }
+
+  function openAdminAchievementsModal() {
+    const container = document.getElementById('admin-achievements-container');
+    container.innerHTML = '';
+    
+    allAchievementIds.forEach(id => {
+      const isUnlocked = unlockedAchievements.includes(id);
+      const div = document.createElement('div');
+      div.className = 'admin-achieve-item';
+      div.innerHTML = `
+        <span>${achievementMeta[id].name}</span>
+        <label style="display:flex; align-items:center; gap:6px; cursor:pointer; font-size:12px;">
+          <span>${isUnlocked ? 'Desbloqueado' : 'Bloqueado'}</span>
+          <input type="checkbox" ${isUnlocked ? 'checked' : ''} onchange="toggleAdminAchievement('${id}', this.checked)" style="transform: scale(1.2); cursor:pointer;">
+        </label>
+      `;
+      container.appendChild(div);
+    });
+
+    document.getElementById('admin-achievements-modal').classList.add('active');
+  }
+
+  function closeAdminAchievementsModal() {
+    document.getElementById('admin-achievements-modal').classList.remove('active');
+    initAchievements();
+  }
+
+  function toggleAdminAchievement(badgeId, shouldUnlock) {
+    if (shouldUnlock) {
+      if (!unlockedAchievements.includes(badgeId)) {
+        unlockedAchievements.push(badgeId);
+      }
+    } else {
+      unlockedAchievements = unlockedAchievements.filter(id => id !== badgeId);
+    }
+    localStorage.setItem('sudoku_achievements', JSON.stringify(unlockedAchievements));
+    openAdminAchievementsModal();
+  }
+
+  function adminUnlockAllAchievements() {
+    allAchievementIds.forEach(id => {
+      if (!unlockedAchievements.includes(id)) unlockedAchievements.push(id);
+    });
+    localStorage.setItem('sudoku_achievements', JSON.stringify(unlockedAchievements));
+    initAchievements();
+    showCustomAlert('Todas as conquistas foram desbloqueadas com sucesso!');
+  }
+
+  function adminResetAchievements() {
+    showCustomConfirm('Tem certeza que deseja resetar todas as conquistas e os modos especiais?', (res) => {
+      if (res) {
+        localStorage.removeItem('sudoku_achievements');
+        unlockedAchievements = [];
+        initAchievements();
+        showCustomAlert('Conquistas resetadas com sucesso!');
+      }
+    });
+  }
+
+  function adminClearRecords() {
+    showCustomConfirm('Tem certeza que deseja limpar todos os recordes (melhores tempos)?', (res) => {
+      if (res) {
+        ['easy', 'medium', 'hard', 'master', 'legendary'].forEach(diff => {
+          localStorage.removeItem(`best_time_${diff}`);
+        });
+        loadBestTimes();
+        showCustomAlert('Recordes limpos com sucesso!');
+      }
+    });
+  }
+
+  function adminClearHistory() {
+    showCustomConfirm('Tem certeza que deseja limpar o histórico de partidas?', (res) => {
+      if (res) {
+        document.getElementById('history-body').innerHTML = '';
+        showCustomAlert('Histórico limpo com sucesso!');
+      }
+    });
+  }
+
+  function startTimer() {
+    clearInterval(timerInterval);
+    timerSeconds = 0;
+    isPaused = false;
+    document.getElementById('btn-pause').textContent = 'Pausar';
+    timerInterval = setInterval(() => { 
+      if (!isPaused) { timerSeconds++; timerDisplay.textContent = formatTime(timerSeconds); } 
+    }, 1000);
+  }
+
+  function formatTime(s) {
+    return `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`;
+  }
+
+  function shuffleBoard(matrix, seed = null) {
+    let board = matrix.map(row => [...row]);
+    let s = seed ? parseInt(seed) : Math.floor(Math.random() * 10000);
+    const pseudoRandom = () => { let x = Math.sin(s++) * 10000; return x - Math.floor(x); };
+
+    let nums = [1,2,3,4,5,6,7,8,9].sort(() => pseudoRandom() - 0.5);
+    let map = {};
+    for(let i=0; i<9; i++) map[i+1] = nums[i];
+    board = board.map(row => row.map(val => map[val]));
+
+    for (let b = 0; b < 3; b++) {
+      for (let i = 0; i < 2; i++) {
+        let r1 = b * 3 + Math.floor(pseudoRandom() * 3);
+        let r2 = b * 3 + Math.floor(pseudoRandom() * 3);
+        [board[r1], board[r2]] = [board[r2], board[r1]];
+      }
+    }
+
+    if (pseudoRandom() > 0.5) { board = board[0].map((_, colIndex) => board.map(row => row[colIndex])); }
+    return board;
+  }
+
+  function generatePuzzle(isDaily = false) {
+    isDailyGame = isDaily;
+    const seed = isDaily ? new Date().toISOString().slice(0,10).replace(/-/g,'') : null;
+    currentSolution = shuffleBoard(baseSolution, seed);
+    
+    let removalCount = 30;
+    const currentDiff = difficultyEl.value;
+    if (currentDiff === 'medium') removalCount = 42;
+    if (currentDiff === 'hard') removalCount = 54;
+    if (currentDiff === 'master') removalCount = 58;
+    if (currentDiff === 'legendary') removalCount = 62;
+
+    initialBoard = currentSolution.map(row => [...row]);
+    let removed = 0;
+    while (removed < removalCount) {
+      let r = Math.floor(Math.random() * 9);
+      let c = Math.floor(Math.random() * 9);
+      if (initialBoard[r][c] !== 0) { initialBoard[r][c] = 0; removed++; }
+    }
+
+    notesBoard = Array(9).fill(0).map(() => Array(9).fill(0).map(() => new Set()));
+    moveHistory = []; selectedCell = null; hintsLeft = 3; hintsUsedInGame = 0;
+    updateHintDisplay();
+    statusEl.textContent = isDaily ? '📅 Desafio Diário Ativo!' : '';
+    startTimer();
+    resetGame();
+  }
+
+  function updateHintDisplay() { hintCountEl.textContent = infiniteHintsEnabled ? '∞' : hintsLeft; }
+
+  function resetGame() {
+    userBoard = initialBoard.map(row => [...row]);
+    errorCount = 0; errorCounterEl.textContent = `Erros: ${errorCount}/3`;
+    selectedCell = null;
+    renderBoard();
+  }
+
+  function isBlockCompleted(blockR, blockC) {
+    for (let r = blockR * 3; r < blockR * 3 + 3; r++) {
+      for (let c = blockC * 3; c < blockC * 3 + 3; c++) {
+        if (userBoard[r][c] !== currentSolution[r][c]) return false;
+      }
+    }
+    return true;
+  }
+
+  function updateNumpadState() {
+    const counts = {};
+    for (let i = 1; i <= 9; i++) counts[i] = 0;
+    for (let r = 0; r < 9; r++) {
+      for (let c = 0; c < 9; c++) {
+        if (userBoard[r][c] === currentSolution[r][c]) counts[userBoard[r][c]]++;
+      }
+    }
+    for (let i = 1; i <= 9; i++) {
+      const btn = document.getElementById(`num-btn-${i}`);
+      if (btn) {
+        if (counts[i] === 9) btn.classList.add('completed');
+        else btn.classList.remove('completed');
+      }
+    }
+  }
+
+  function renderBoard() {
+    boardEl.innerHTML = '';
+    if (isPaused) { boardEl.innerHTML = '<div style="position:absolute;top:45%;left:25%;font-weight:bold;font-size:18px;">Jogo Pausado ⏸️</div>'; return; }
+
+    let highlightVal = selectedCell ? userBoard[selectedCell.r][selectedCell.c] : null;
+
+    for (let r = 0; r < 9; r++) {
+      for (let c = 0; c < 9; c++) {
+        const cell = document.createElement('div');
+        cell.classList.add('cell');
+        const val = userBoard[r][c];
+
+        const blockR = Math.floor(r / 3);
+        const blockC = Math.floor(c / 3);
+        if (isBlockCompleted(blockR, blockC)) cell.classList.add('block-completed');
+
+        if (selectedCell && (selectedCell.r === r || selectedCell.c === c)) cell.classList.add('line-highlight');
+        if (selectedCell && selectedCell.r === r && selectedCell.c === c) cell.classList.add('selected');
+
+        if (val !== 0) {
+          cell.textContent = val;
+          if (initialBoard[r][c] === 0) cell.classList.add(val === currentSolution[r][c] ? 'correct' : 'incorrect');
+          if (highlightVal && val === highlightVal) cell.classList.add('highlighted');
+        } else if (notesBoard[r][c].size > 0) {
+          const notesGrid = document.createElement('div');
+          notesGrid.className = 'notes-grid';
+          for (let n = 1; n <= 9; n++) {
+            const item = document.createElement('div');
+            item.className = 'note-item';
+            item.textContent = notesBoard[r][c].has(n) ? n : '';
+            notesGrid.appendChild(item);
+          }
+          cell.appendChild(notesGrid);
+        }
+
+        cell.addEventListener('click', () => { selectedCell = { r, c }; renderBoard(); });
+        boardEl.appendChild(cell);
+      }
+    }
+    updateNumpadState();
+  }
+
+  function inputNumber(num) {
+    if (!selectedCell || isPaused) return;
+    const { r, c } = selectedCell;
+    if (initialBoard[r][c] !== 0) return;
+
+    moveHistory.push({ r, c, val: userBoard[r][c], notes: new Set(notesBoard[r][c]) });
+
+    if (isNoteMode && num !== 0) {
+      if (notesBoard[r][c].has(num)) notesBoard[r][c].delete(num);
+      else notesBoard[r][c].add(num);
+      userBoard[r][c] = 0;
+    } else {
+      userBoard[r][c] = num;
+      notesBoard[r][c].clear();
+
+      if (num !== 0 && num !== currentSolution[r][c]) {
+        errorCount++;
+        errorCounterEl.textContent = `Erros: ${errorCount}/3`;
         
-        const configModal = document.getElementById('config-modal');
-        const adminModal = document.getElementById('admin-modal');
-        const achievementsModal = document.getElementById('achievements-modal');
-        const shopModal = document.getElementById('shop-modal');
-        const gameOverScreen = document.getElementById('game-over-screen');
-        
-        const closeConfigBtn = document.getElementById('close-config-btn');
-        const openAdminBtn = document.getElementById('open-admin-btn');
-        const closeAdminBtn = document.getElementById('close-admin-btn');
-        const adminLoginBox = document.getElementById('admin-login-box');
-        const adminPanelBox = document.getElementById('admin-panel-box');
-        const adminPassInput = document.getElementById('admin-pass-input');
-        const adminLoginSubmit = document.getElementById('admin-login-submit');
-        const adminCoinsInput = document.getElementById('admin-coins-input');
-        const adminAddCoinsBtn = document.getElementById('admin-add-coins-btn');
-        const adminAchievementsList = document.getElementById('admin-achievements-list');
-
-        const openAchievementsBtn = document.getElementById('open-achievements-btn');
-        const closeAchievementsBtn = document.getElementById('close-achievements-btn');
-        const achievementsListContainer = document.getElementById('achievements-list-container');
-
-        const closeShopBtn = document.getElementById('close-shop-btn');
-        const restartBtn = document.getElementById('restart-btn');
-        const instructions = document.getElementById('instructions');
-        
-        const finalScore = document.getElementById('final-score');
-        const finalCoins = document.getElementById('final-coins');
-        const highScoreDisplay = document.getElementById('high-score');
-        const itemsListContainer = document.getElementById('items-list-container');
-        const shopSubTabs = document.getElementById('shop-sub-tabs');
-        const previewCanvas = document.getElementById('previewCanvas');
-        const previewCtx = previewCanvas.getContext('2d');
-        const soundToggle = document.getElementById('sound-toggle');
-
-        let audioCtx = null;
-        function initAudio() {
-            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            if (audioCtx && audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
+        const isErrorCounterActive = errorCounterEl.style.display !== 'none';
+        if (isErrorCounterActive && errorCount >= 3) {
+          statusEl.textContent = '3 erros! Derrota...';
+          streakCount = 0;
+          localStorage.setItem('sudoku_streak', 0);
+          addHistoryRow('Derrota');
+          setTimeout(resetGame, 1500);
+          return;
         }
+      }
+    }
 
-        function playSound(type) {
-            if (!soundToggle.checked) return;
-            initAudio();
-            if (!audioCtx) return;
+    renderBoard();
+    checkWin();
+  }
 
-            const osc = audioCtx.createOscillator();
-            const gainNode = audioCtx.createGain();
-            osc.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
-            const now = audioCtx.currentTime;
+  function undoLastMove() {
+    if (moveHistory.length === 0 || isPaused) return;
+    const last = moveHistory.pop();
+    userBoard[last.r][last.c] = last.val;
+    notesBoard[last.r][last.c] = last.notes;
+    renderBoard();
+  }
 
-            if (type === 'jump') {
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(300, now);
-                osc.frequency.exponentialRampToValueAtTime(600, now + 0.1);
-                gainNode.gain.setValueAtTime(0.12, now);
-                gainNode.gain.linearRampToValueAtTime(0.01, now + 0.1);
-                osc.start(now); osc.stop(now + 0.1);
-            } else if (type === 'coin') {
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(900, now);
-                osc.frequency.setValueAtTime(1300, now + 0.08);
-                gainNode.gain.setValueAtTime(0.1, now);
-                gainNode.gain.linearRampToValueAtTime(0.01, now + 0.2);
-                osc.start(now); osc.stop(now + 0.2);
-            } else if (type === 'score') {
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(500, now);
-                osc.frequency.setValueAtTime(750, now + 0.08);
-                gainNode.gain.setValueAtTime(0.1, now);
-                gainNode.gain.linearRampToValueAtTime(0.01, now + 0.15);
-                osc.start(now); osc.stop(now + 0.15);
-            } else if (type === 'boost') {
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(400, now);
-                osc.frequency.exponentialRampToValueAtTime(900, now + 0.25);
-                gainNode.gain.setValueAtTime(0.12, now);
-                gainNode.gain.linearRampToValueAtTime(0.01, now + 0.25);
-                osc.start(now); osc.stop(now + 0.25);
-            } else if (type === 'hit') {
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(150, now);
-                osc.frequency.linearRampToValueAtTime(40, now + 0.25);
-                gainNode.gain.setValueAtTime(0.18, now);
-                gainNode.gain.linearRampToValueAtTime(0.01, now + 0.25);
-                osc.start(now); osc.stop(now + 0.25);
-            } else if (type === 'unlock') {
-                osc.type = 'square';
-                osc.frequency.setValueAtTime(400, now);
-                osc.frequency.setValueAtTime(600, now + 0.1);
-                osc.frequency.setValueAtTime(900, now + 0.2);
-                gainNode.gain.setValueAtTime(0.12, now);
-                gainNode.gain.linearRampToValueAtTime(0.01, now + 0.35);
-                osc.start(now); osc.stop(now + 0.35);
-            }
+  function giveHint() {
+    if ((!infiniteHintsEnabled && hintsLeft <= 0) || isPaused) return;
+    
+    const celulasDisponiveis = [];
+    for (let row = 0; row < 9; row++) {
+      for (let col = 0; col < 9; col++) {
+        if (userBoard[row][col] !== currentSolution[row][col] && initialBoard[row][col] === 0) {
+          celulasDisponiveis.push({ r: row, c: col });
         }
-
-        let toastTimeout;
-        function showToast(message) {
-            toastBanner.textContent = message;
-            toastBanner.classList.add('show');
-            clearTimeout(toastTimeout);
-            toastTimeout = setTimeout(() => toastBanner.classList.remove('show'), 2500);
-        }
-
-        let highScore = parseInt(localStorage.getItem('flappy_high_score')) || 0;
-        let totalScoreLifetime = parseInt(localStorage.getItem('flappy_total_score')) || 0;
-        let coins = parseInt(localStorage.getItem('flappy_coins')) || 50;
-        
-        let currentColor = localStorage.getItem('flappy_color') || '#f43f5e';
-        let currentSkin = localStorage.getItem('flappy_skin') || 'none';
-        let currentPipeColor = localStorage.getItem('flappy_pipe_color') || '#10b981';
-        let currentBgColor = localStorage.getItem('flappy_bg_color') || 'default';
-
-        let ownedItems = JSON.parse(localStorage.getItem('flappy_owned')) || ['#f43f5e', 'none', '#10b981', 'default'];
-        let unlockedAchievements = JSON.parse(localStorage.getItem('flappy_achievements')) || [];
-
-        const shopCatalog = {
-            bird: {
-                colors: [
-                    { id: '#f43f5e', name: 'Vermelho Neon', price: 0 },
-                    { id: '#38bdf8', name: 'Azul Elétrico', price: 20 },
-                    { id: '#10b981', name: 'Verde Esmeralda', price: 35 },
-                    { id: '#fbbf24', name: 'Amarelo Ouro', price: 50 },
-                    { id: '#a855f7', name: 'Roxo Ciber', price: 70 },
-                    { id: '#ec4899', name: 'Rosa Choque', price: 90 },
-                    { id: '#06b6d4', name: 'Ciano Ártico', price: 110 },
-                    { id: '#f97316', name: 'Laranja Solar', price: 130 },
-                    { id: '#84cc16', name: 'Lima Extrema', price: 150 },
-                    { id: '#6366f1', name: 'Índigo Profundo', price: 180 }
-                ],
-                skins: [
-                    { id: 'none', name: 'Nenhuma', price: 0 },
-                    { id: 'glasses', name: 'Óculos Escuros', price: 40 },
-                    { id: 'sunglasses', name: 'Óculos de Sol', price: 60 },
-                    { id: 'hat', name: 'Chapéu Mágico', price: 80 },
-                    { id: 'crown', name: 'Coroa Imperial', price: 150 },
-                    { id: 'cape', name: 'Super Capa', price: 200 },
-                    { id: 'halo', name: 'Auréola Divina', price: 0, achievementReq: 'ach_score_10' },
-                    { id: 'headphones', name: 'Fones Gamer', price: 0, achievementReq: 'ach_coins_20' },
-                    { id: 'fire_aura', name: 'Aura Flamejante', price: 0, achievementReq: 'ach_score_30' }
-                ]
-            },
-            scene: {
-                pipes: [
-                    { id: '#10b981', name: 'Verde Clássico', price: 0 },
-                    { id: '#3b82f6', name: 'Azul Aço', price: 30 },
-                    { id: '#ef4444', name: 'Vermelho Lava', price: 50 },
-                    { id: '#eab308', name: 'Amarelo Alerta', price: 70 },
-                    { id: '#ec4899', name: 'Rosa Neon', price: 90 },
-                    { id: '#8b5cf6', name: 'Roxo Místico', price: 120 }
-                ],
-                backgrounds: [
-                    { id: 'default', name: 'Noite Espacial', price: 0, colors: ['#1e1b4b', '#311b92', '#0f172a'] },
-                    { id: 'sunset', name: 'Pôr do Sol', price: 50, colors: ['#7c2d12', '#9a3412', '#431407'] },
-                    { id: 'cyber', name: 'Ciberpunk', price: 80, colors: ['#831843', '#581c87', '#030712'] },
-                    { id: 'matrix', name: 'Abissal Verde', price: 110, colors: ['#064e3b', '#022c22', '#020617'] }
-                ]
-            }
-        };
-
-        const achievementsList = [
-            { id: 'ach_score_10', title: 'Iniciante Estelar', desc: 'Acumule 10 pontos totais no jogo', rewardSkin: 'halo', rewardName: 'Auréola Divina', target: 10, type: 'totalScore' },
-            { id: 'ach_coins_20', title: 'Caçador de Tesouros', desc: 'Colete 20 moedas no total', rewardSkin: 'headphones', rewardName: 'Fones Gamer', target: 20, type: 'totalCoins' },
-            { id: 'ach_score_30', title: 'Mestre dos Ares', desc: 'Acumule 30 pontos totais no jogo', rewardSkin: 'fire_aura', rewardName: 'Aura Flamejante', target: 30, type: 'totalScore' }
-        ];
-
-        let activeMainTab = 'bird';
-        let activeSubTab = 'colors';
-        let activePreviewMode = 'bird'; // Modo de pré-visualização ativo na loja
-        
-        let bird, pipes, coinsList, boostersList, score, coinsCollected, gameOver, gameStarted, isPaused, frameCount, wingAngle;
-
-        let activeBoosters = { slowTime: 0, doubleCoins: 0, magnet: 0 };
-
-        const gravity = 0.25;
-        const jump = -5.5;
-        const basePipeSpeed = 2;
-        const pipeGap = 130;
-        const pipeSpawnRate = 110;
-
-        function initGame() {
-            bird = {
-                x: 60,
-                y: canvas.height / 2,
-                velocity: 0,
-                radius: 12,
-                rotation: 0
-            };
-            pipes = [];
-            coinsList = [];
-            boostersList = [];
-            score = 0;
-            coinsCollected = 0;
-            frameCount = 0;
-            wingAngle = 0;
-            gameOver = false;
-            gameStarted = false;
-            isPaused = false;
-
-            activeBoosters = { slowTime: 0, doubleCoins: 0, magnet: 0 };
-            updateBoostersHUD();
-
-            scoreDisplay.textContent = score;
-            coinsDisplay.textContent = `🪙 ${coins}`;
-            pauseBtn.textContent = '⏸️';
-            gameOverScreen.classList.remove('active');
-            configModal.classList.remove('active');
-            adminModal.classList.remove('active');
-            achievementsModal.classList.remove('active');
-            shopModal.classList.remove('active');
-            instructions.style.display = 'block';
-        }
-
-        function renderBird(context, x, y, radius, color, skin, rotation = 0, wingAnimAngle = 0) {
-            context.save();
-            context.translate(x, y);
-            context.rotate(rotation);
-
-            if (skin === 'cape') {
-                context.beginPath();
-                context.moveTo(-radius * 0.5, 0);
-                context.lineTo(-radius * 1.6, radius * 0.9);
-                context.lineTo(-radius * 0.8, -radius * 0.2);
-                context.fillStyle = '#ef4444';
-                context.fill();
-            }
-
-            if (skin === 'fire_aura') {
-                context.beginPath();
-                context.arc(0, 0, radius * 1.5, 0, Math.PI * 2);
-                context.fillStyle = 'rgba(249, 115, 22, 0.35)';
-                context.fill();
-            }
-
-            context.save();
-            context.translate(-radius * 0.2, 0);
-            context.rotate(-Math.sin(wingAnimAngle) * 0.4);
-            context.beginPath();
-            context.ellipse(0, 0, radius * 0.5, radius * 0.3, Math.PI / 4, 0, Math.PI * 2);
-            context.fillStyle = shadeColor(color, -20);
-            context.fill();
-            context.restore();
-
-            context.beginPath();
-            context.arc(0, 0, radius, 0, Math.PI * 2);
-            context.fillStyle = color;
-            context.shadowColor = color;
-            context.shadowBlur = 10;
-            context.fill();
-            context.closePath();
-            context.shadowBlur = 0;
-
-            context.beginPath();
-            context.arc(radius * 0.35, -radius * 0.35, radius * 0.26, 0, Math.PI * 2);
-            context.fillStyle = '#fff';
-            context.fill();
-            context.beginPath();
-            context.arc(radius * 0.42, -radius * 0.35, radius * 0.12, 0, Math.PI * 2);
-            context.fillStyle = '#0f172a';
-            context.fill();
-
-            context.beginPath();
-            context.moveTo(radius * 0.6, -radius * 0.1);
-            context.lineTo(radius * 1.35, radius * 0.2);
-            context.lineTo(radius * 0.6, radius * 0.5);
-            context.fillStyle = '#fbbf24';
-            context.fill();
-
-            context.save();
-            context.translate(-radius * 0.1, radius * 0.1);
-            context.rotate(Math.sin(wingAnimAngle) * 0.6);
-            context.beginPath();
-            context.ellipse(0, 0, radius * 0.7, radius * 0.38, -Math.PI / 6, 0, Math.PI * 2);
-            context.fillStyle = shadeColor(color, -15);
-            context.strokeStyle = 'rgba(255,255,255,0.3)';
-            context.lineWidth = 1.5;
-            context.fill();
-            context.stroke();
-            context.restore();
-
-            if (skin === 'glasses') {
-                context.fillStyle = '#0f172a';
-                context.fillRect(radius * 0.1, -radius * 0.55, radius * 0.75, radius * 0.4);
-            } else if (skin === 'sunglasses') {
-                context.fillStyle = '#0f172a';
-                context.beginPath();
-                context.roundRect(0, -radius * 0.55, radius * 0.95, radius * 0.4, 3);
-                context.fill();
-            } else if (skin === 'hat') {
-                context.fillStyle = '#818cf8';
-                context.fillRect(-radius * 0.6, -radius * 1.3, radius * 1.2, radius * 0.6);
-                context.fillRect(-radius * 0.9, -radius * 0.7, radius * 1.8, radius * 0.15);
-            } else if (skin === 'crown') {
-                context.fillStyle = '#fbbf24';
-                context.beginPath();
-                context.moveTo(-radius * 0.7, -radius * 0.8);
-                context.lineTo(-radius * 0.7, -radius * 1.5);
-                context.lineTo(-radius * 0.25, -radius * 1.0);
-                context.lineTo(0, -radius * 1.6);
-                context.lineTo(radius * 0.25, -radius * 1.0);
-                context.lineTo(radius * 0.7, -radius * 1.5);
-                context.lineTo(radius * 0.7, -radius * 0.8);
-                context.closePath();
-                context.fill();
-            } else if (skin === 'halo') {
-                context.strokeStyle = '#fbbf24';
-                context.lineWidth = 2;
-                context.beginPath();
-                context.ellipse(0, -radius * 1.4, radius * 0.7, radius * 0.25, 0, 0, Math.PI * 2);
-                context.stroke();
-            } else if (skin === 'headphones') {
-                context.strokeStyle = '#38bdf8';
-                context.lineWidth = 3;
-                context.beginPath();
-                context.arc(0, 0, radius * 1.1, Math.PI, 0);
-                context.stroke();
-                context.fillStyle = '#38bdf8';
-                context.fillRect(-radius * 1.2, -radius * 0.3, radius * 0.3, radius * 0.6);
-                context.fillRect(radius * 0.9, -radius * 0.3, radius * 0.3, radius * 0.6);
-            }
-
-            context.restore();
-        }
-
-        function shadeColor(color, percent) {
-            let f = parseInt(color.slice(1), 16), t = percent < 0 ? 0 : 255, p = percent < 0 ? percent * -1 : percent, R = f >> 16, G = f >> 8 & 0x00ff, B = f & 0x0000ff;
-            return "#" + (0x1000000 + (Math.round((t - R) * p / 100) + R) * 0x10000 + (Math.round((t - G) * p / 100) + G) * 0x100 + (Math.round((t - B) * p / 100) + B)).toString(16).slice(1);
-        }
-
-        function spawnPipe() {
-            const minHeight = 50;
-            const maxHeight = canvas.height - pipeGap - minHeight - 50;
-            const topHeight = Math.floor(Math.random() * (maxHeight - minHeight + 1)) + minHeight;
-
-            pipes.push({
-                x: canvas.width,
-                top: topHeight,
-                bottom: canvas.height - topHeight - pipeGap,
-                passed: false
-            });
-
-            let spawnRand = Math.random();
-            if (spawnRand < 0.5) {
-                coinsList.push({
-                    x: canvas.width + 25,
-                    y: topHeight + pipeGap / 2,
-                    radius: 8,
-                    collected: false
-                });
-            } else if (spawnRand < 0.75) {
-                const types = ['slow', 'double', 'magnet'];
-                const bType = types[Math.floor(Math.random() * types.length)];
-                boostersList.push({
-                    x: canvas.width + 25,
-                    y: topHeight + pipeGap / 2,
-                    radius: 12,
-                    type: bType,
-                    collected: false
-                });
-            }
-        }
-
-        function checkAchievements() {
-            let totalCoinsLifetime = parseInt(localStorage.getItem('flappy_total_coins_lifetime')) || 0;
-
-            achievementsList.forEach(ach => {
-                if (!unlockedAchievements.includes(ach.id)) {
-                    let progress = ach.type === 'totalScore' ? totalScoreLifetime : totalCoinsLifetime;
-                    if (progress >= ach.target) {
-                        unlockedAchievements.push(ach.id);
-                        localStorage.setItem('flappy_achievements', JSON.stringify(unlockedAchievements));
-
-                        if (!ownedItems.includes(ach.rewardSkin)) {
-                            ownedItems.push(ach.rewardSkin);
-                            localStorage.setItem('flappy_owned', JSON.stringify(ownedItems));
-                        }
-
-                        playSound('unlock');
-                        showToast(`🏆 Conquista: ${ach.title} (${ach.rewardName} desbloqueada!)`);
-                    }
-                }
-            });
-        }
-
-        function updateBoostersHUD() {
-            let html = '';
-            if (activeBoosters.slowTime > 0) html += `<div class="booster-tag">⏳ Câmera Lenta (${Math.ceil(activeBoosters.slowTime / 60)}s)</div>`;
-            if (activeBoosters.doubleCoins > 0) html += `<div class="booster-tag">🪙 Moedas x2 (${Math.ceil(activeBoosters.doubleCoins / 60)}s)</div>`;
-            if (activeBoosters.magnet > 0) html += `<div class="booster-tag">🧲 Ímã de Moedas (${Math.ceil(activeBoosters.magnet / 60)}s)</div>`;
-            boostersHud.innerHTML = html;
-        }
-
-        function flap() {
-            if (gameOver || isPaused) return;
-            if (!gameStarted) {
-                gameStarted = true;
-                instructions.style.display = 'none';
-            }
-            bird.velocity = jump;
-            wingAngle = -0.8;
-            playSound('jump');
-        }
-
-        function update() {
-            if (!gameStarted || gameOver || isPaused) return;
-
-            frameCount++;
-            wingAngle += 0.15;
-
-            let currentPipeSpeed = basePipeSpeed;
-            if (activeBoosters.slowTime > 0) {
-                activeBoosters.slowTime--;
-                currentPipeSpeed = basePipeSpeed * 0.55;
-            }
-            if (activeBoosters.doubleCoins > 0) activeBoosters.doubleCoins--;
-            if (activeBoosters.magnet > 0) activeBoosters.magnet--;
-            updateBoostersHUD();
-
-            bird.velocity += gravity;
-            bird.y += bird.velocity;
-            bird.rotation = Math.min(Math.PI / 4, Math.max(-Math.PI / 4, (bird.velocity / 10)));
-
-            if (bird.y + bird.radius >= canvas.height - 20 || bird.y - bird.radius <= 0) {
-                triggerGameOver();
-            }
-
-            if (frameCount % Math.round(pipeSpawnRate * (activeBoosters.slowTime > 0 ? 1.5 : 1)) === 0) {
-                spawnPipe();
-            }
-
-            for (let i = pipes.length - 1; i >= 0; i--) {
-                const p = pipes[i];
-                p.x -= currentPipeSpeed;
-
-                if (
-                    bird.x + bird.radius > p.x &&
-                    bird.x - bird.radius < p.x + 50 &&
-                    (bird.y - bird.radius < p.top || bird.y + bird.radius > canvas.height - p.bottom)
-                ) {
-                    triggerGameOver();
-                }
-
-                if (!p.passed && p.x + 50 < bird.x) {
-                    p.passed = true;
-                    score++;
-                    totalScoreLifetime++;
-                    localStorage.setItem('flappy_total_score', totalScoreLifetime);
-                    scoreDisplay.textContent = score;
-                    playSound('score');
-                    checkAchievements();
-                }
-
-                if (p.x + 50 < 0) pipes.splice(i, 1);
-            }
-
-            for (let i = coinsList.length - 1; i >= 0; i--) {
-                const c = coinsList[i];
-                c.x -= currentPipeSpeed;
-
-                if (activeBoosters.magnet > 0 && !c.collected) {
-                    let dx = bird.x - c.x;
-                    let dy = bird.y - c.y;
-                    let dist = Math.hypot(dx, dy);
-                    if (dist < 150) {
-                        c.x += (dx / dist) * 4;
-                        c.y += (dy / dist) * 4;
-                    }
-                }
-
-                const dist = Math.hypot(bird.x - c.x, bird.y - c.y);
-                if (!c.collected && dist < bird.radius + c.radius) {
-                    c.collected = true;
-                    let gainedCoins = activeBoosters.doubleCoins > 0 ? 2 : 1;
-                    coinsCollected += gainedCoins;
-                    coins += gainedCoins;
-                    score += 2;
-
-                    let totalCoinsLifetime = (parseInt(localStorage.getItem('flappy_total_coins_lifetime')) || 0) + gainedCoins;
-                    localStorage.setItem('flappy_total_coins_lifetime', totalCoinsLifetime);
-
-                    scoreDisplay.textContent = score;
-                    coinsDisplay.textContent = `🪙 ${coins}`;
-                    localStorage.setItem('flappy_coins', coins);
-                    playSound('coin');
-                    checkAchievements();
-                }
-
-                if (c.x + c.radius < 0) coinsList.splice(i, 1);
-            }
-
-            for (let i = boostersList.length - 1; i >= 0; i--) {
-                const b = boostersList[i];
-                b.x -= currentPipeSpeed;
-
-                const dist = Math.hypot(bird.x - b.x, bird.y - b.y);
-                if (!b.collected && dist < bird.radius + b.radius) {
-                    b.collected = true;
-                    playSound('boost');
-
-                    if (b.type === 'slow') {
-                        activeBoosters.slowTime = 360;
-                        showToast('⏳ Câmera Lenta Ativada!');
-                    } else if (b.type === 'double') {
-                        activeBoosters.doubleCoins = 420;
-                        showToast('🪙 Moedas em Dobro Ativadas!');
-                    } else if (b.type === 'magnet') {
-                        activeBoosters.magnet = 360;
-                        showToast('🧲 Ímã de Moedas Ativado!');
-                    }
-                }
-
-                if (b.x + b.radius < 0) boostersList.splice(i, 1);
-            }
-        }
-
-        function drawSceneOnContext(context, width, height, pipeColor, bgId) {
-            let bgObj = shopCatalog.scene.backgrounds.find(b => b.id === bgId) || shopCatalog.scene.backgrounds[0];
-            let grad = context.createLinearGradient(0, 0, 0, height);
-            grad.addColorStop(0, bgObj.colors[0]);
-            grad.addColorStop(0.5, bgObj.colors[1]);
-            grad.addColorStop(1, bgObj.colors[2]);
-            context.fillStyle = grad;
-            context.fillRect(0, 0, width, height);
-
-            context.fillStyle = '#0f172a';
-            context.fillRect(0, height - 15, width, 15);
-            context.fillStyle = '#38bdf8';
-            context.fillRect(0, height - 15, width, 2);
-        }
-
-        function draw() {
-            drawSceneOnContext(ctx, canvas.width, canvas.height, currentPipeColor, currentBgColor);
-
-            pipes.forEach(p => {
-                ctx.fillStyle = currentPipeColor;
-                ctx.strokeStyle = '#ffffff33';
-                ctx.lineWidth = 2;
-                ctx.fillRect(p.x, 0, 50, p.top);
-                ctx.strokeRect(p.x, 0, 50, p.top);
-                ctx.fillRect(p.x, canvas.height - p.bottom, 50, p.bottom);
-                ctx.strokeRect(p.x, canvas.height - p.bottom, 50, p.bottom);
-            });
-
-            coinsList.forEach(c => {
-                if (!c.collected) {
-                    ctx.save();
-                    ctx.beginPath();
-                    ctx.arc(c.x, c.y, c.radius, 0, Math.PI * 2);
-                    ctx.fillStyle = '#fbbf24';
-                    ctx.shadowColor = '#fbbf24';
-                    ctx.shadowBlur = 8;
-                    ctx.fill();
-                    ctx.restore();
-                }
-            });
-
-            boostersList.forEach(b => {
-                if (!b.collected) {
-                    ctx.save();
-                    ctx.beginPath();
-                    ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
-                    ctx.fillStyle = b.type === 'slow' ? '#38bdf8' : (b.type === 'double' ? '#fbbf24' : '#a855f7');
-                    ctx.shadowColor = ctx.fillStyle;
-                    ctx.shadowBlur = 10;
-                    ctx.fill();
-                    ctx.fillStyle = '#fff';
-                    ctx.font = '10px sans-serif';
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText(b.type === 'slow' ? '⏳' : (b.type === 'double' ? '2X' : '🧲'), b.x, b.y);
-                    ctx.restore();
-                }
-            });
-
-            renderBird(ctx, bird.x, bird.y, bird.radius, currentColor, currentSkin, bird.rotation, wingAngle);
-        }
-
-        function triggerGameOver() {
-            gameOver = true;
-            playSound('hit');
-            if (score > highScore) {
-                highScore = score;
-                localStorage.setItem('flappy_high_score', highScore);
-            }
-            finalScore.textContent = score;
-            finalCoins.textContent = coinsCollected;
-            highScoreDisplay.textContent = highScore;
-            gameOverScreen.classList.add('active');
-        }
-
-        function openShop() {
-            isPaused = true;
-            shopCoinsDisplay.textContent = `🪙 ${coins}`;
-            shopModal.classList.add('active');
-            updateSubTabs();
-            renderShopItems();
-            renderPreview();
-        }
-
-        function closeShop() {
-            shopModal.classList.remove('active');
-            isPaused = false;
-        }
-
-        // Renderização inteligente do Preview de acordo com o botão de preview ativo
-        function renderPreview() {
-            previewCtx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
-            
-            // Fundo da pré-visualização sempre respeita o fundo atual ou o selecionado
-            let bgToUse = currentBgColor;
-            if (activeMainTab === 'scene' && activeSubTab === 'backgrounds') {
-                bgToUse = activeSubTabSelectionId();
-            }
-            drawSceneOnContext(previewCtx, previewCanvas.width, previewCanvas.height, currentPipeColor, bgToUse);
-
-            // Se o modo de visualização for 'pipe', desenhamos um cano miniatura de amostra
-            if (activePreviewMode === 'pipe') {
-                let samplePipeColor = currentPipeColor;
-                if (activeMainTab === 'scene' && activeSubTab === 'pipes') {
-                    samplePipeColor = activeSubTabSelectionId();
-                }
-                previewCtx.fillStyle = samplePipeColor;
-                previewCtx.strokeStyle = '#ffffff33';
-                previewCtx.lineWidth = 2;
-                // Cano Superior de Amostra
-                previewCtx.fillRect(35, 0, 40, 55);
-                previewCtx.strokeRect(35, 0, 40, 55);
-                // Cano Inferior de Amostra
-                previewCtx.fillRect(35, previewCanvas.height - 55, 40, 55);
-                previewCtx.strokeRect(35, previewCanvas.height - 55, 40, 55);
-            }
-
-            // Se o modo de visualização incluir o pássaro, desenhamos o pássaro
-            if (activePreviewMode === 'bird' || activePreviewMode === 'skin') {
-                let colorToUse = currentColor;
-                let skinToUse = currentSkin;
-
-                if (activeMainTab === 'bird') {
-                    if (activeSubTab === 'colors') colorToUse = activeSubTabSelectionId();
-                    if (activeSubTab === 'skins') skinToUse = activeSubTabSelectionId();
-                }
-
-                renderBird(previewCtx, previewCanvas.width / 2, previewCanvas.height / 2, 18, colorToUse, skinToUse, 0, Date.now() * 0.005);
-            }
-        }
-
-        function activeSubTabSelectionId() {
-            const items = shopCatalog[activeMainTab][activeSubTab];
-            let found = items.find(i => !ownedItems.includes(i.id)) || items[0];
-            return found ? found.id : items[0].id;
-        }
-
-        function updateSubTabs() {
-            shopSubTabs.innerHTML = '';
-            if (activeMainTab === 'bird') {
-                shopSubTabs.innerHTML = `
-                    <button class="tab-btn ${activeSubTab === 'colors' ? 'active' : ''}" data-sub="colors">Cores</button>
-                    <button class="tab-btn ${activeSubTab === 'skins' ? 'active' : ''}" data-sub="skins">Roupas</button>
-                `;
-            } else {
-                shopSubTabs.innerHTML = `
-                    <button class="tab-btn ${activeSubTab === 'pipes' ? 'active' : ''}" data-sub="pipes">Colunas</button>
-                    <button class="tab-btn ${activeSubTab === 'backgrounds' ? 'active' : ''}" data-sub="backgrounds">Fundo</button>
-                `;
-            }
-
-            shopSubTabs.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    shopSubTabs.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-                    e.target.classList.add('active');
-                    activeSubTab = e.target.getAttribute('data-sub');
-                    
-                    // Ajusta o modo de preview automaticamente com base na aba secundária escolhida
-                    if (activeSubTab === 'colors') activePreviewMode = 'bird';
-                    else if (activeSubTab === 'skins') activePreviewMode = 'skin';
-                    else if (activeSubTab === 'pipes') activePreviewMode = 'pipe';
-                    else if (activeSubTab === 'backgrounds') activePreviewMode = 'bg';
-
-                    updatePreviewButtonsActiveState();
-                    renderShopItems();
-                    renderPreview();
-                });
-            });
-        }
-
-        function updatePreviewButtonsActiveState() {
-            document.querySelectorAll('.preview-btn').forEach(btn => {
-                if (btn.getAttribute('data-preview-mode') === activePreviewMode) {
-                    btn.classList.add('active');
-                } else {
-                    btn.classList.remove('active');
-                }
-            });
-        }
-
-        function renderShopItems() {
-            itemsListContainer.innerHTML = '';
-            const items = shopCatalog[activeMainTab][activeSubTab];
-
-            items.forEach(item => {
-                const isOwned = ownedItems.includes(item.id);
-                let isEquipped = false;
-                if (activeMainTab === 'bird') {
-                    isEquipped = (activeSubTab === 'colors' && currentColor === item.id) || (activeSubTab === 'skins' && currentSkin === item.id);
-                } else {
-                    isEquipped = (activeSubTab === 'pipes' && currentPipeColor === item.id) || (activeSubTab === 'backgrounds' && currentBgColor === item.id);
-                }
-
-                let btnText = 'Comprar';
-                let isDisabled = false;
-                let priceLabel = item.price > 0 && !isOwned ? 'Preço: ' + item.price + ' moedas' : 'Disponível';
-
-                if (item.achievementReq && !isOwned) {
-                    priceLabel = 'Exclusivo de Conquista';
-                }
-
-                if (isEquipped) {
-                    btnText = 'Equipado';
-                    isDisabled = true;
-                } else if (isOwned) {
-                    btnText = 'Usar';
-                } else if (item.achievementReq && !isOwned) {
-                    btnText = 'Bloqueado';
-                    isDisabled = true;
-                } else {
-                    btnText = `${item.price} 🪙`;
-                }
-
-                const card = document.createElement('div');
-                card.className = 'item-card';
-                card.innerHTML = `
-                    <div class="item-info">
-                        <span class="item-name">${item.name}</span>
-                        <span class="item-price">${priceLabel}</span>
-                    </div>
-                    <button class="btn-action" ${isDisabled ? 'disabled' : ''}>${btnText}</button>
-                `;
-
-                // Clique no card atualiza o preview em tempo real com o item focado
-                card.addEventListener('click', () => {
-                    if (activeMainTab === 'bird') {
-                        if (activeSubTab === 'colors') currentColor = item.id;
-                        else currentSkin = item.id;
-                    } else {
-                        if (activeSubTab === 'pipes') currentPipeColor = item.id;
-                        else currentBgColor = item.id;
-                    }
-                    renderPreview();
-                });
-
-                card.querySelector('button').addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    handleItemAction(item);
-                });
-
-                itemsListContainer.appendChild(card);
-            });
-        }
-
-        function handleItemAction(item) {
-            const isOwned = ownedItems.includes(item.id);
-
-            if (!isOwned) {
-                if (item.achievementReq) {
-                    showToast('Item exclusivo de Conquistas!');
-                    return;
-                }
-
-                if (coins >= item.price) {
-                    coins -= item.price;
-                    ownedItems.push(item.id);
-                    localStorage.setItem('flappy_coins', coins);
-                    localStorage.setItem('flappy_owned', JSON.stringify(ownedItems));
-                    coinsDisplay.textContent = `🪙 ${coins}`;
-                    shopCoinsDisplay.textContent = `🪙 ${coins}`;
-                    playSound('coin');
-                } else {
-                    showToast('Moedas insuficientes!');
-                    return;
-                }
-            }
-
-            if (activeMainTab === 'bird') {
-                if (activeSubTab === 'colors') {
-                    currentColor = item.id;
-                    localStorage.setItem('flappy_color', currentColor);
-                } else {
-                    currentSkin = item.id;
-                    localStorage.setItem('flappy_skin', currentSkin);
-                }
-            } else {
-                if (activeSubTab === 'pipes') {
-                    currentPipeColor = item.id;
-                    localStorage.setItem('flappy_pipe_color', currentPipeColor);
-                } else {
-                    currentBgColor = item.id;
-                    localStorage.setItem('flappy_bg_color', currentBgColor);
-                }
-            }
-
-            renderShopItems();
-            renderPreview();
-        }
-
-        document.querySelectorAll('.shop-tabs-main .tab-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                document.querySelectorAll('.shop-tabs-main .tab-btn').forEach(b => b.classList.remove('active'));
-                e.target.classList.add('active');
-                activeMainTab = e.target.getAttribute('data-main');
-                activeSubTab = activeMainTab === 'bird' ? 'colors' : 'pipes';
-                activePreviewMode = activeMainTab === 'bird' ? 'bird' : 'pipe';
-                updatePreviewButtonsActiveState();
-                updateSubTabs();
-                renderShopItems();
-                renderPreview();
-            });
-        });
-
-        // Eventos para os botões manuais de preview
-        document.querySelectorAll('.preview-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                activePreviewMode = e.target.getAttribute('data-preview-mode');
-                updatePreviewButtonsActiveState();
-                renderPreview();
-            });
-        });
-
-        function renderAchievements() {
-            achievementsListContainer.innerHTML = '';
-            let totalCoinsLifetime = parseInt(localStorage.getItem('flappy_total_coins_lifetime')) || 0;
-
-            achievementsList.forEach(ach => {
-                const isUnlocked = unlockedAchievements.includes(ach.id);
-                let progress = ach.type === 'totalScore' ? (parseInt(localStorage.getItem('flappy_total_score')) || 0) : totalCoinsLifetime;
-                if (progress > ach.target) progress = ach.target;
-
-                const card = document.createElement('div');
-                card.className = 'item-card';
-                card.innerHTML = `
-                    <div class="item-info">
-                        <span class="item-name">${ach.title} ${isUnlocked ? '✅' : '🔒'}</span>
-                        <span class="item-desc">${ach.desc}</span>
-                        <span class="item-price" style="font-size: 0.75rem;">Progresso: ${progress} / ${ach.target} | Recompensa: ${ach.rewardName}</span>
-                    </div>
-                `;
-                achievementsListContainer.appendChild(card);
-            });
-        }
-
-        function renderAdminAchievements() {
-            adminAchievementsList.innerHTML = '';
-            achievementsList.forEach(ach => {
-                const isUnlocked = unlockedAchievements.includes(ach.id);
-                const card = document.createElement('div');
-                card.className = 'item-card';
-                card.style.padding = '6px 10px';
-                card.innerHTML = `
-                    <div class="item-info">
-                        <span class="item-name" style="font-size: 0.85rem;">${ach.title}</span>
-                        <span class="item-desc" style="font-size: 0.75rem;">Status: ${isUnlocked ? 'Desbloqueada 🔓' : 'Bloqueada 🔒'}</span>
-                    </div>
-                    <button class="btn-action" style="padding: 4px 8px; font-size: 0.75rem; background: ${isUnlocked ? '#f43f5e' : '#10b981'}; color: #fff;">
-                        ${isUnlocked ? 'Bloquear' : 'Desbloquear'}
-                    </button>
-                `;
-
-                card.querySelector('button').addEventListener('click', () => {
-                    if (isUnlocked) {
-                        unlockedAchievements = unlockedAchievements.filter(id => id !== ach.id);
-                    } else {
-                        if (!unlockedAchievements.includes(ach.id)) unlockedAchievements.push(ach.id);
-                        if (!ownedItems.includes(ach.rewardSkin)) ownedItems.push(ach.rewardSkin);
-                        localStorage.setItem('flappy_owned', JSON.stringify(ownedItems));
-                    }
-                    localStorage.setItem('flappy_achievements', JSON.stringify(unlockedAchievements));
-                    renderAdminAchievements();
-                    showToast('Status da conquista alterado!');
-                });
-
-                adminAchievementsList.appendChild(card);
-            });
-        }
-
-        configBtn.addEventListener('click', () => {
-            if (gameOver) return;
-            isPaused = true;
-            configModal.classList.add('active');
-        });
-
-        closeConfigBtn.addEventListener('click', () => {
-            configModal.classList.remove('active');
-            isPaused = false;
-        });
-
-        openAdminBtn.addEventListener('click', () => {
-            configModal.classList.remove('active');
-            adminPassInput.value = '';
-            adminLoginBox.style.display = 'flex';
-            adminPanelBox.style.display = 'none';
-            adminModal.classList.add('active');
-        });
-
-        closeAdminBtn.addEventListener('click', () => {
-            adminModal.classList.remove('active');
-            configModal.classList.add('active');
-        });
-
-        adminLoginSubmit.addEventListener('click', () => {
-            if (adminPassInput.value === 'admin123') {
-                adminLoginBox.style.display = 'none';
-                adminPanelBox.style.display = 'flex';
-                renderAdminAchievements();
-                playSound('coin');
-                showToast('Acesso Autorizado!');
-            } else {
-                showToast('Senha incorreta!');
-            }
-        });
-
-        adminAddCoinsBtn.addEventListener('click', () => {
-            const amount = parseInt(adminCoinsInput.value) || 0;
-            coins += amount;
-            localStorage.setItem('flappy_coins', coins);
-            coinsDisplay.textContent = `🪙 ${coins}`;
-            showToast(`+${amount} moedas adicionadas!`);
-            playSound('coin');
-        });
-
-        openAchievementsBtn.addEventListener('click', () => {
-            configModal.classList.remove('active');
-            renderAchievements();
-            achievementsModal.classList.add('active');
-        });
-
-        closeAchievementsBtn.addEventListener('click', () => {
-            achievementsModal.classList.remove('active');
-            configModal.classList.add('active');
-        });
-
-        shopBtn.addEventListener('click', openShop);
-        closeShopBtn.addEventListener('click', closeShop);
-        restartBtn.addEventListener('click', initGame);
-
-        pauseBtn.addEventListener('click', () => {
-            if (gameOver || shopModal.classList.contains('active') || configModal.classList.contains('active') || adminModal.classList.contains('active') || achievementsModal.classList.contains('active')) return;
-            isPaused = !isPaused;
-            pauseBtn.textContent = isPaused ? '▶️' : '⏸️';
-        });
-
-        window.addEventListener('keydown', (e) => {
-            if (e.code === 'Space') {
-                e.preventDefault();
-                flap();
-            }
-        });
-
-        canvas.addEventListener('click', (e) => {
-            e.preventDefault();
-            flap();
-        });
-        
-        canvas.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            flap();
-        }, { passive: false });
-
-        function loop() {
-            update();
-            draw();
-            requestAnimationFrame(loop);
-        }
-
-        initGame();
-        loop();
-    </script>
+      }
+    }
+
+    if (celulasDisponiveis.length > 0) {
+      const randomIndex = Math.floor(Math.random() * celulasDisponiveis.length);
+      const target = celulasDisponiveis[randomIndex];
+      selectedCell = { r: target.r, c: target.c };
+      inputNumber(currentSolution[target.r][target.c]);
+
+      if (!infiniteHintsEnabled) { hintsLeft--; hintsUsedInGame++; }
+      updateHintDisplay();
+    }
+  }
+
+  function checkWin() {
+    for (let r = 0; r < 9; r++) {
+      for (let c = 0; c < 9; c++) {
+        if (userBoard[r][c] !== currentSolution[r][c]) return;
+      }
+    }
+    clearInterval(timerInterval);
+    document.getElementById('win-time').textContent = formatTime(timerSeconds);
+    document.getElementById('win-errors').textContent = errorCount;
+    document.getElementById('unlock-message').style.display = 'none';
+
+    let earnedPoints = 20;
+    const diffVal = difficultyEl.value;
+    if (diffVal === 'medium') earnedPoints = 40;
+    if (diffVal === 'hard') earnedPoints = 80;
+    if (diffVal === 'master') earnedPoints = 150;
+    if (diffVal === 'legendary') earnedPoints = 300;
+
+    playerPoints += earnedPoints;
+    updatePointsDisplay();
+    document.getElementById('win-points').textContent = `+${earnedPoints}`;
+
+    streakCount++;
+    localStorage.setItem('sudoku_streak', streakCount);
+
+    if (streakCount >= 3) awardAchievement('badge-streak');
+    if (timerSeconds < 180) awardAchievement('badge-fast');
+    if (timerSeconds < 90) awardAchievement('badge-lightning');
+    if (errorCount === 0) awardAchievement('badge-perfect');
+    if (hintsUsedInGame === 0) awardAchievement('badge-nohint');
+    if (isDailyGame) awardAchievement('badge-daily');
+    
+    if (diffVal === 'hard' && !isDailyGame) {
+      awardAchievement('badge-unlock-master', '✨ NOVA DIFICULDADE DESBLOQUEADA: MESTRE 🔥');
+    }
+    if (diffVal === 'master' && errorCount === 0 && !isDailyGame) {
+      awardAchievement('badge-unlock-legendary', '✨ NOVA DIFICULDADE DESBLOQUEADA: LENDÁRIO 🐉');
+    }
+
+    updateBestTime(diffVal, timerSeconds);
+    addHistoryRow('Vitória');
+
+    if (checkAllAchievementsCompleted()) {
+      document.getElementById('epic-win-modal').classList.add('active');
+    } else {
+      document.getElementById('win-modal').classList.add('active');
+    }
+  }
+
+  function claimEpicTrophy() {
+    const nameInput = document.getElementById('trophy-owner-name').value.trim() || 'Jogador(a)';
+    earnedTrophies.push({ name: nameInput });
+    localStorage.setItem('sudoku_trophies', JSON.stringify(earnedTrophies));
+
+    localStorage.removeItem('sudoku_achievements');
+    ['easy', 'medium', 'hard', 'master', 'legendary'].forEach(diff => {
+      localStorage.removeItem(`best_time_${diff}`);
+    });
+    localStorage.setItem('sudoku_streak', '0');
+
+    unlockedAchievements = [];
+    streakCount = 0;
+
+    document.getElementById('epic-win-modal').classList.remove('active');
+    document.getElementById('trophy-owner-name').value = '';
+    
+    initAchievements();
+    loadBestTimes();
+    generatePuzzle();
+  }
+
+  function updateBestTime(diff, seconds) {
+    const key = `best_time_${diff}`;
+    const best = localStorage.getItem(key);
+    if (!best || seconds < parseInt(best)) {
+      localStorage.setItem(key, seconds);
+      loadBestTimes();
+    }
+  }
+
+  function loadBestTimes() {
+    ['easy', 'medium', 'hard', 'master', 'legendary'].forEach(diff => {
+      const best = localStorage.getItem(`best_time_${diff}`);
+      const el = document.getElementById(`best-${diff}`);
+      if (el) el.textContent = best ? formatTime(parseInt(best)) : '--:--';
+    });
+  }
+
+  function addHistoryRow(result) {
+    const tbody = document.getElementById('history-body');
+    const tr = document.createElement('tr');
+    const modeLabel = isDailyGame ? 'Diário' : difficultyEl.options[difficultyEl.selectedIndex].text.replace(/🔒|🔥|🐉|\(Bloqueado\)/g, '').trim();
+    tr.innerHTML = `<td>${modeLabel}</td><td>${formatTime(timerSeconds)}</td><td style="color: ${result === 'Vitória' ? 'var(--correct-color)' : 'var(--error-color)'}; font-weight:bold;">${result}</td><td>${errorCount}</td>`;
+    tbody.prepend(tr);
+  }
+
+  function showAchievementInfo(title, desc) {
+    if (!isPaused) { isPaused = true; document.getElementById('btn-pause').textContent = 'Retomar'; renderBoard(); }
+    document.getElementById('achieve-title').textContent = title;
+    document.getElementById('achieve-desc').textContent = desc;
+    document.getElementById('achievement-modal').classList.add('active');
+  }
+
+  function closeAchievementModal() {
+    document.getElementById('achievement-modal').classList.remove('active');
+    startCountdownOverlay();
+  }
+
+  function startCountdownOverlay() {
+    const overlay = document.getElementById('countdown-overlay');
+    const text = document.getElementById('countdown-text');
+    overlay.style.display = 'flex'; 
+    let count = 3; text.textContent = count;
+    const interval = setInterval(() => {
+      count--;
+      if (count > 0) { text.textContent = count; } else {
+        clearInterval(interval); overlay.style.display = 'none'; isPaused = false;
+        document.getElementById('btn-pause').textContent = 'Pausar'; renderBoard();
+      }
+    }, 1000);
+  }
+
+  function enterFocusMode() {
+    if (isPaused) { isPaused = false; document.getElementById('btn-pause').textContent = 'Pausar'; }
+    document.body.classList.add('focus-mode'); renderBoard();
+  }
+
+  function exitFocusMode() { document.body.classList.remove('focus-mode'); renderBoard(); }
+
+  document.getElementById('btn-toggle-focus').addEventListener('click', enterFocusMode);
+  document.getElementById('btn-exit-focus').addEventListener('click', exitFocusMode);
+
+  function checkAdminPassword() {
+    const passInput = document.getElementById('admin-pass-input').value;
+    const errorMsg = document.getElementById('admin-error-msg');
+    if (passInput === ADMIN_PASSWORD) {
+      isAdminLoggedIn = true; errorMsg.textContent = '';
+      document.getElementById('admin-login-section').style.display = 'none';
+      document.getElementById('admin-panel').style.display = 'block';
+    } else { errorMsg.textContent = 'Senha incorreta!'; }
+  }
+
+  document.getElementById('infinite-hints-toggle').addEventListener('change', (e) => { infiniteHintsEnabled = e.target.checked; updateHintDisplay(); });
+
+  difficultyEl.addEventListener('change', () => {
+    generatePuzzle(false);
+  });
+
+  // Funções para o Atalho Ctrl+B
+  function openSecretCodeModal() {
+    document.getElementById('secret-code-input').value = '';
+    document.getElementById('secret-code-error').textContent = '';
+    document.getElementById('secret-code-modal').classList.add('active');
+    setTimeout(() => document.getElementById('secret-code-input').focus(), 100);
+  }
+
+  function closeSecretCodeModal() {
+    document.getElementById('secret-code-modal').classList.remove('active');
+  }
+
+  function submitSecretCode() {
+    const code = document.getElementById('secret-code-input').value.trim();
+    const errorEl = document.getElementById('secret-code-error');
+    if (code === 'Benj') {
+      closeSecretCodeModal();
+      if (!unlockedSkins.includes('roxinho')) {
+        unlockedSkins.push('roxinho');
+        localStorage.setItem('sudoku_unlocked_skins', JSON.stringify(unlockedSkins));
+      }
+      selectSkin('roxinho');
+      showCustomAlert('Código aceito! Tema roxo desbloqueado e aplicado com sucesso[cite: 5]!');
+    } else {
+      errorEl.textContent = 'Código incorreto!';
+    }
+  }
+
+  document.addEventListener('keydown', (e) => {
+    // Atalho Ctrl+B para abrir o modal do código secreto[cite: 5]
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') {
+      e.preventDefault();
+      openSecretCodeModal();
+      return;
+    }
+
+    if (document.getElementById('settings-modal').classList.contains('active') || document.getElementById('achievement-modal').classList.contains('active') || document.getElementById('epic-win-modal').classList.contains('active') || document.getElementById('admin-achievements-modal').classList.contains('active') || document.getElementById('preview-modal').classList.contains('active') || document.getElementById('secret-code-modal').classList.contains('active')) {
+      if (e.key === 'Escape') { closeSettingsModal(); closeAchievementModal(); closeAdminAchievementsModal(); closePreviewModal(); closeSecretCodeModal(); } return;
+    }
+    if (e.key === 'Escape') { closeEasterEggModal(); closeWinModal(); marketDrawer.classList.remove('active'); }
+    if (e.key >= '1' && e.key <= '9') inputNumber(parseInt(e.key));
+    if (e.key === 'Backspace' || e.key === 'Delete') inputNumber(0);
+    if (e.key.toLowerCase() === 'n') toggleNoteMode();
+    if (e.key.toLowerCase() === 'a') document.getElementById('settings-modal').classList.add('active');
+    
+    if (selectedCell) {
+      if (e.key === 'ArrowUp') { e.preventDefault(); if (selectedCell.r > 0) selectedCell.r--; }
+      if (e.key === 'ArrowDown') { e.preventDefault(); if (selectedCell.r < 8) selectedCell.r++; }
+      if (e.key === 'ArrowLeft') { e.preventDefault(); if (selectedCell.c > 0) selectedCell.c--; }
+      if (e.key === 'ArrowRight') { e.preventDefault(); if (selectedCell.c < 8) selectedCell.c++; }
+      renderBoard();
+    }
+  });
+
+  function toggleNoteMode() {
+    isNoteMode = !isNoteMode;
+    btnModeToggle.textContent = isNoteMode ? '✏️ Modo: Rascunho (N)' : '✍️ Modo: Número (N)';
+    btnModeToggle.classList.toggle('active', isNoteMode);
+  }
+
+  document.getElementById('btn-settings').addEventListener('click', () => { document.getElementById('settings-modal').classList.add('active'); });
+  document.getElementById('btn-theme').addEventListener('click', () => {
+    document.body.classList.toggle('light-mode');
+    document.getElementById('btn-theme').textContent = document.body.classList.contains('light-mode') ? '☀️' : '🌙';
+  });
+  document.getElementById('btn-easter-egg').addEventListener('click', () => {
+    document.getElementById('love-message-text').textContent = loveMessages[loveMsgIndex];
+    loveMsgIndex = (loveMsgIndex + 1) % loveMessages.length;
+    document.getElementById('easter-egg-modal').classList.add('active');
+  });
+
+  function closeSettingsModal() { document.getElementById('settings-modal').classList.remove('active'); }
+  function closeEasterEggModal() { document.getElementById('easter-egg-modal').classList.remove('active'); }
+  function closeWinModal() { document.getElementById('win-modal').classList.remove('active'); generatePuzzle(); }
+
+  document.getElementById('btn-mode-toggle').addEventListener('click', toggleNoteMode);
+  document.getElementById('btn-new').addEventListener('click', () => generatePuzzle(false));
+  document.getElementById('btn-daily').addEventListener('click', () => generatePuzzle(true));
+  document.getElementById('btn-reset').addEventListener('click', resetGame);
+  document.getElementById('btn-hint').addEventListener('click', giveHint);
+  document.getElementById('btn-pause').addEventListener('click', () => { 
+    isPaused = !isPaused; 
+    document.getElementById('btn-pause').textContent = isPaused ? 'Retomar' : 'Pausar'; renderBoard(); 
+  });
+
+  initGlobalSettings();
+  initAchievements();
+  loadBestTimes();
+  updatePointsDisplay();
+  applyActiveSkinToBoard();
+  generatePuzzle();
+</script>
 </body>
 </html>
