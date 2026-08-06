@@ -207,7 +207,7 @@
     .skin-market-card { background: var(--highlight-line-bg); border: 1px solid var(--light-border); padding: 14px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; }
 
     /* Modais Customizados */
-    .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.65); backdrop-filter: blur(5px); z-index: 1000; justify-content: center; align-items: center; padding: 16px; opacity: 0; transition: opacity 0.25s ease; }
+    .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.65); backdrop-filter: blur(5px); z-index: 1100; justify-content: center; align-items: center; padding: 16px; opacity: 0; transition: opacity 0.25s ease; }
     .modal-overlay.active { display: flex; opacity: 1; }
     
     .modal-card { background: var(--card-bg); padding: 24px; border-radius: 20px; text-align: center; max-width: 400px; width: 100%; box-shadow: 0 20px 35px rgba(0, 0, 0, 0.4); border: 1px solid var(--light-border); transform: scale(0.9); transition: transform 0.25s ease; }
@@ -263,14 +263,20 @@
       <div>
         <strong>Neon Cyber</strong><br><small style="color: var(--note-color);">Estilo futurista brilhante (50 pts)</small>
       </div>
-      <button class="action-btn" id="skin-btn-neon" onclick="buyOrSelectSkin('neon', 50)">Comprar</button>
+      <div style="display: flex; gap: 6px;">
+        <button class="action-btn" style="background-color: #64748b;" onclick="previewSkin('neon')">Preview</button>
+        <button class="action-btn" id="skin-btn-neon" onclick="buyOrSelectSkin('neon', 50)">Comprar</button>
+      </div>
     </div>
 
     <div class="skin-market-card">
       <div>
         <strong>Retrô Vintage</strong><br><small style="color: var(--note-color);">Tons pastéis aconchegantes (100 pts)</small>
       </div>
-      <button class="action-btn" id="skin-btn-retro" onclick="buyOrSelectSkin('retro', 100)">Comprar</button>
+      <div style="display: flex; gap: 6px;">
+        <button class="action-btn" style="background-color: #64748b;" onclick="previewSkin('retro')">Preview</button>
+        <button class="action-btn" id="skin-btn-retro" onclick="buyOrSelectSkin('retro', 100)">Comprar</button>
+      </div>
     </div>
   </div>
 </div>
@@ -410,6 +416,18 @@
   <div class="modal-card">
     <div class="love-card" id="love-message-text">Eu te amo, Benj &lt;3</div>
     <button class="action-btn" style="padding: 8px 20px;" onclick="closeEasterEggModal()">fofo ✨</button>
+  </div>
+</div>
+
+<!-- Modal de Preview da Skin -->
+<div class="modal-overlay" id="preview-modal">
+  <div class="modal-card">
+    <h2>🎨 Preview do Estilo</h2>
+    <p id="preview-desc" style="font-size: 13px; margin: 12px 0; color: var(--note-color);"></p>
+    <div class="board-wrapper" style="max-width: 260px; margin: 10px auto;">
+      <div id="preview-board" class="sudoku-board"></div>
+    </div>
+    <button class="action-btn" style="width: 100%; padding: 10px; margin-top: 10px;" onclick="closePreviewModal()">Fechar Preview</button>
   </div>
 </div>
 
@@ -609,6 +627,41 @@
     if (activeSkin !== 'classic') {
       boardEl.classList.add(`skin-${activeSkin}`);
     }
+  }
+
+  // Função de Preview de Skin
+  function previewSkin(skinName) {
+    const previewModal = document.getElementById('preview-modal');
+    const previewBoard = document.getElementById('preview-board');
+    const previewDesc = document.getElementById('preview-desc');
+    
+    previewBoard.className = 'sudoku-board';
+    if (skinName !== 'classic') {
+      previewBoard.classList.add(`skin-${skinName}`);
+    }
+
+    previewDesc.textContent = `Visualização rápida do tema: ${skinName.toUpperCase()}`;
+    previewBoard.innerHTML = '';
+    
+    // Mini grid de exemplo para o preview
+    for (let r = 0; r < 9; r++) {
+      for (let c = 0; c < 9; c++) {
+        const cell = document.createElement('div');
+        cell.classList.add('cell');
+        cell.style.fontSize = '11px';
+        const sampleVal = baseSolution[r][c];
+        if (sampleVal % 2 === 0) {
+          cell.textContent = sampleVal;
+          cell.classList.add('correct');
+        }
+        previewBoard.appendChild(cell);
+      }
+    }
+    previewModal.classList.add('active');
+  }
+
+  function closePreviewModal() {
+    document.getElementById('preview-modal').classList.remove('active');
   }
 
   // Admin adicionar pontos livres
@@ -1047,7 +1100,6 @@
     document.getElementById('win-errors').textContent = errorCount;
     document.getElementById('unlock-message').style.display = 'none';
 
-    // Atribuição de Pontos por Vitória baseada na dificuldade
     let earnedPoints = 20;
     const diffVal = difficultyEl.value;
     if (diffVal === 'medium') earnedPoints = 40;
@@ -1079,6 +1131,7 @@
     updateBestTime(diffVal, timerSeconds);
     addHistoryRow('Vitória');
 
+    // Acionamento automático do troféu ao completar todas as conquistas (100%)
     if (checkAllAchievementsCompleted()) {
       document.getElementById('epic-win-modal').classList.add('active');
     } else {
@@ -1181,14 +1234,13 @@
 
   document.getElementById('infinite-hints-toggle').addEventListener('change', (e) => { infiniteHintsEnabled = e.target.checked; updateHintDisplay(); });
 
-  // Correção essencial: Alteração do tabuleiro imediata ao trocar o seletor de dificuldade
   difficultyEl.addEventListener('change', () => {
     generatePuzzle(false);
   });
 
   document.addEventListener('keydown', (e) => {
-    if (document.getElementById('settings-modal').classList.contains('active') || document.getElementById('achievement-modal').classList.contains('active') || document.getElementById('epic-win-modal').classList.contains('active') || document.getElementById('admin-achievements-modal').classList.contains('active')) {
-      if (e.key === 'Escape') { closeSettingsModal(); closeAchievementModal(); closeAdminAchievementsModal(); } return;
+    if (document.getElementById('settings-modal').classList.contains('active') || document.getElementById('achievement-modal').classList.contains('active') || document.getElementById('epic-win-modal').classList.contains('active') || document.getElementById('admin-achievements-modal').classList.contains('active') || document.getElementById('preview-modal').classList.contains('active')) {
+      if (e.key === 'Escape') { closeSettingsModal(); closeAchievementModal(); closeAdminAchievementsModal(); closePreviewModal(); } return;
     }
     if (e.key === 'Escape') { closeEasterEggModal(); closeWinModal(); marketDrawer.classList.remove('active'); }
     if (e.key >= '1' && e.key <= '9') inputNumber(parseInt(e.key));
