@@ -176,7 +176,7 @@
     }
     .sudoku-board.skin-golden .cell { background: var(--card-bg); border-color: var(--light-border); color: var(--text-color); }
 
-    /* NOVO TEMA ROXINHO / LAVENDER VIP */
+    /* TEMA ROXINHO / LAVENDER VIP */
     body.skin-roxinho {
       --bg-color: #1e1b4b;
       --card-bg: #312e81;
@@ -202,6 +202,35 @@
       --shadow: 0 10px 25px -5px rgba(124, 58, 237, 0.15);
     }
     .sudoku-board.skin-roxinho .cell { background: var(--card-bg); border-color: var(--light-border); color: var(--text-color); }
+
+    /* NOVO TEMA EXCLUSIVO: LILÁS MÁGICO (BENJ) */
+    body.skin-lilas {
+      --bg-color: #2e1065;
+      --card-bg: #4c1d95;
+      --text-color: #f5d0fe;
+      --border-color: #d946ef;
+      --light-border: #6b21a8;
+      --primary-color: #e879f9;
+      --highlight-line-bg: #3b0764;
+      --selected-bg: #a21caf;
+      --highlight-match-bg: #701a75;
+      --block-completed-bg: #581c87;
+      --shadow: 0 0 35px rgba(217, 70, 239, 0.3);
+    }
+    body.skin-lilas.light-mode {
+      --bg-color: #fdf4ff;
+      --card-bg: #ffffff;
+      --text-color: #701a75;
+      --border-color: #e879f9;
+      --light-border: #fae8ff;
+      --primary-color: #d946ef;
+      --highlight-line-bg: #fae8ff;
+      --selected-bg: #f5d0fe;
+      --highlight-match-bg: #fbcfe8;
+      --block-completed-bg: #f3e8ff;
+      --shadow: 0 10px 25px -5px rgba(217, 70, 239, 0.15);
+    }
+    .sudoku-board.skin-lilas .cell { background: var(--card-bg); border-color: var(--light-border); color: var(--text-color); }
 
     /* NOVO TEMA COQUETTE */
     body.skin-coquette {
@@ -393,8 +422,9 @@
     .cell:nth-child(9n) { border-right: none; }
     .sudoku-board > div:nth-child(n+19):nth-child(-n+27), .sudoku-board > div:nth-child(n+46):nth-child(-n+54) { border-bottom: 2px solid var(--border-color); }
 
-    .cell.block-completed { background-color: var(--block-completed-bg); }
-    .cell.line-highlight { background-color: var(--highlight-line-bg); }
+    /* CORREÇÃO DO DESTAQUE COM !IMPORTANT PARA FUNCIONAR EM TODOS OS TEMAS */
+    .cell.block-completed { background-color: var(--block-completed-bg) !important; }
+    .cell.line-highlight { background-color: var(--highlight-line-bg) !important; }
     .cell.correct { color: var(--correct-color); }
     .cell.incorrect { color: var(--error-color); background-color: rgba(239, 68, 68, 0.15) !important; }
     .cell.highlighted { background-color: var(--highlight-match-bg) !important; }
@@ -555,6 +585,17 @@
       <div style="display: flex; gap: 6px;">
         <button class="action-btn" style="background-color: #64748b;" onclick="previewSkin('roxinho')">Preview</button>
         <button class="action-btn" id="skin-btn-roxinho" onclick="buyOrSelectSkin('roxinho', 75)">Comprar</button>
+      </div>
+    </div>
+
+    <!-- TEMA SECRETO LILÁS (BENJ) -->
+    <div class="skin-market-card" id="card-skin-lilas" style="display: none;">
+      <div>
+        <strong>🔮 Lilás Mágico (Benj)</strong><br><small style="color: var(--note-color);">Tema secreto desbloqueado! ✨</small>
+      </div>
+      <div style="display: flex; gap: 6px;">
+        <button class="action-btn" style="background-color: #64748b;" onclick="previewSkin('lilas')">Preview</button>
+        <button class="action-btn" id="skin-btn-lilas" onclick="selectSkin('lilas')">Usar</button>
       </div>
     </div>
 
@@ -898,8 +939,16 @@
 
   function updateMarketUI() {
     updatePointsDisplay();
-    const skins = ['classic', 'emerald', 'neon', 'retro', 'sunset', 'roxinho', 'coquette', 'ultrakill', 'golden'];
-    const prices = { classic: 0, emerald: 0, neon: 50, retro: 100, sunset: 200, roxinho: 75, coquette: 120, ultrakill: 250, golden: 0 };
+    const skins = ['classic', 'emerald', 'neon', 'retro', 'sunset', 'roxinho', 'lilas', 'coquette', 'ultrakill', 'golden'];
+    const prices = { classic: 0, emerald: 0, neon: 50, retro: 100, sunset: 200, roxinho: 75, lilas: 0, coquette: 120, ultrakill: 250, golden: 0 };
+
+    // Mostrar ou esconder card do tema secreto Lilás no mercadinho se já estiver desbloqueado
+    const lilasCard = document.getElementById('card-skin-lilas');
+    if (unlockedSkins.includes('lilas')) {
+      lilasCard.style.display = 'flex';
+    } else {
+      lilasCard.style.display = 'none';
+    }
 
     const hasTrophy = earnedTrophies.length > 0;
     const goldenCard = document.getElementById('card-skin-golden');
@@ -932,7 +981,7 @@
         btn.style.backgroundColor = 'var(--primary-color)';
         btn.style.color = '#fff';
       } else {
-        if (skin === 'golden') {
+        if (skin === 'golden' || skin === 'lilas') {
           btn.textContent = 'Bloqueado';
           btn.disabled = true;
           btn.style.backgroundColor = 'var(--locked-color)';
@@ -980,7 +1029,7 @@
   }
 
   function applyActiveSkinToBoard() {
-    document.body.classList.remove('skin-neon', 'skin-retro', 'skin-emerald', 'skin-sunset', 'skin-golden', 'skin-roxinho', 'skin-coquette', 'skin-ultrakill');
+    document.body.classList.remove('skin-neon', 'skin-retro', 'skin-emerald', 'skin-sunset', 'skin-golden', 'skin-roxinho', 'skin-lilas', 'skin-coquette', 'skin-ultrakill');
     boardEl.className = 'sudoku-board';
     if (activeSkin !== 'classic') {
       document.body.classList.add(`skin-${activeSkin}`);
@@ -1631,19 +1680,19 @@
     const errorEl = document.getElementById('secret-code-error');
     if (code === 'Benj') {
       closeSecretCodeModal();
-      if (!unlockedSkins.includes('roxinho')) {
-        unlockedSkins.push('roxinho');
+      if (!unlockedSkins.includes('lilas')) {
+        unlockedSkins.push('lilas');
         localStorage.setItem('sudoku_unlocked_skins', JSON.stringify(unlockedSkins));
       }
-      selectSkin('roxinho');
-      showCustomAlert('Código aceito! Tema roxo desbloqueado e aplicado com sucesso[cite: 5]!');
+      selectSkin('lilas');
+      showCustomAlert('Código aceito! Tema exclusivo Lilás Mágico desbloqueado e aplicado com sucesso! ✨');
     } else {
       errorEl.textContent = 'Código incorreto!';
     }
   }
 
   document.addEventListener('keydown', (e) => {
-    // Atalho Ctrl+B para abrir o modal do código secreto[cite: 5]
+    // Atalho Ctrl+B para abrir o modal do código secreto
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') {
       e.preventDefault();
       openSecretCodeModal();
