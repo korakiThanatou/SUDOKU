@@ -1,0 +1,1248 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sudoku Pro - Versão Completa</title>
+  <style>
+    :root {
+      --bg-color: #0f172a;
+      --card-bg: #1e293b;
+      --text-color: #f8fafc;
+      --border-color: #475569;
+      --light-border: #334155;
+      --correct-color: #22c55e;
+      --error-color: #ef4444;
+      --selected-bg: #1d4ed8;
+      --highlight-match-bg: #1e3a8a;
+      --highlight-line-bg: #334155;
+      --primary-color: #3b82f6;
+      --hint-color: #f59e0b;
+      --block-completed-bg: #064e3b;
+      --note-color: #94a3b8;
+      --locked-color: #64748b;
+      --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+    }
+
+    body.light-mode {
+      --bg-color: #f1f5f9;
+      --card-bg: #ffffff;
+      --text-color: #0f172a;
+      --border-color: #cbd5e1;
+      --light-border: #e2e8f0;
+      --correct-color: #16a34a;
+      --error-color: #dc2626;
+      --selected-bg: #bfdbfe;
+      --highlight-match-bg: #dbeafe;
+      --highlight-line-bg: #f8fafc;
+      --primary-color: #2563eb;
+      --hint-color: #d97706;
+      --block-completed-bg: #dcfce7;
+      --note-color: #64748b;
+      --locked-color: #94a3b8;
+      --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+    }
+
+    /* Estilizações de Skins do Tabuleiro */
+    .sudoku-board.skin-neon {
+      border-color: #06b6d4 !important;
+      box-shadow: 0 0 20px rgba(6, 182, 212, 0.4);
+    }
+    .sudoku-board.skin-neon .cell {
+      background: #090d16;
+      border-color: #164e63;
+      color: #22d3ee;
+    }
+    .sudoku-board.skin-neon .cell.selected {
+      background: #0891b2 !important;
+      color: #fff;
+    }
+
+    .sudoku-board.skin-retro {
+      border-color: #b45309 !important;
+      background: #fef3c7;
+    }
+    .sudoku-board.skin-retro .cell {
+      background: #fffbeb;
+      border-color: #fcd34d;
+      color: #78350f;
+    }
+    .sudoku-board.skin-retro .cell.selected {
+      background: #f59e0b !important;
+      color: #fff;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      margin: 0;
+      padding: 16px;
+      position: relative;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    .exit-focus-btn {
+      display: none; position: fixed; top: 12px; left: 50%; transform: translateX(-50%);
+      background-color: var(--error-color); color: white; border: none; border-radius: 20px;
+      padding: 8px 16px; font-size: 13px; font-weight: bold; cursor: pointer;
+      box-shadow: var(--shadow); z-index: 999;
+    }
+
+    body.focus-mode .sidebar, body.focus-mode .bottom-section, body.focus-mode .hud-bar,
+    body.focus-mode .controls, body.focus-mode h1, body.focus-mode .easter-egg-btn,
+    body.focus-mode .theme-toggle-btn, body.focus-mode .settings-toggle-btn,
+    body.focus-mode .trophies-shelf, body.focus-mode .market-toggle-btn { display: none !important; }
+    body.focus-mode .exit-focus-btn { display: block !important; }
+    body.focus-mode .main-wrapper { margin-top: 40px; }
+    body.focus-mode .container { box-shadow: none; background: transparent; padding: 0; }
+
+    .easter-egg-btn, .theme-toggle-btn, .settings-toggle-btn, .market-toggle-btn {
+      position: fixed; top: 12px; background: var(--card-bg); border: 1px solid var(--light-border);
+      border-radius: 50%; width: 42px; height: 42px; display: flex; align-items: center;
+      justify-content: center; font-size: 18px; cursor: pointer; color: var(--text-color);
+      box-shadow: var(--shadow); z-index: 90; transition: transform 0.2s;
+    }
+    .easter-egg-btn:hover, .theme-toggle-btn:hover, .settings-toggle-btn:hover, .market-toggle-btn:hover { transform: scale(1.08); }
+    .easter-egg-btn { right: 16px; animation: pulse 2.5s infinite; }
+    .theme-toggle-btn { right: 68px; }
+    .settings-toggle-btn { right: 120px; }
+    .market-toggle-btn { right: 172px; border-radius: 20px; width: auto; padding: 0 12px; font-size: 13px; font-weight: bold; gap: 6px; }
+
+    /* Prateleira de Troféus (Superior Esquerdo) */
+    .trophies-shelf {
+      position: fixed; top: 12px; left: 16px; display: flex; gap: 6px; z-index: 90;
+      background: var(--card-bg); padding: 6px 12px; border-radius: 20px;
+      border: 1px solid var(--light-border); box-shadow: var(--shadow);
+      max-width: 280px; overflow-x: auto; align-items: center;
+    }
+    .trophy-badge {
+      display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: bold;
+      background: rgba(245, 158, 11, 0.15); border: 1px solid var(--hint-color); padding: 3px 8px;
+      border-radius: 12px; white-space: nowrap; cursor: pointer; color: var(--text-color);
+    }
+
+    @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.12); } 100% { transform: scale(1); } }
+
+    .main-wrapper {
+      display: flex; flex-direction: column; align-items: center; gap: 20px;
+      max-width: 900px; width: 100%; margin-top: 50px;
+    }
+
+    .top-section { display: flex; flex-wrap: wrap; gap: 20px; width: 100%; justify-content: center; }
+    .container { background: var(--card-bg); padding: 20px; border-radius: 16px; box-shadow: var(--shadow); flex: 1 1 420px; max-width: 480px; width: 100%; border: 1px solid var(--light-border); }
+    .sidebar { background: var(--card-bg); padding: 20px; border-radius: 16px; box-shadow: var(--shadow); flex: 1 1 280px; max-width: 480px; width: 100%; display: flex; flex-direction: column; gap: 20px; border: 1px solid var(--light-border); }
+    .bottom-section { background: var(--card-bg); padding: 20px; border-radius: 16px; box-shadow: var(--shadow); width: 100%; overflow-x: auto; border: 1px solid var(--light-border); }
+
+    h1 { text-align: center; margin: 0 0 16px 0; font-size: 26px; font-weight: 800; background: linear-gradient(45deg, var(--primary-color), var(--hint-color)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    h2, h3 { text-align: center; margin-top: 0; font-size: 16px; border-bottom: 2px solid var(--primary-color); padding-bottom: 8px; margin-bottom: 14px; font-weight: 700; letter-spacing: 0.5px; }
+
+    .hud-bar { display: flex; justify-content: space-between; align-items: center; background: var(--highlight-line-bg); padding: 10px 14px; border-radius: 10px; margin-bottom: 16px; font-weight: bold; font-size: 14px; min-height: 44px; border: 1px solid var(--light-border); }
+    .btn-hud { padding: 6px 10px; font-size: 12px; background-color: var(--primary-color); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; transition: opacity 0.2s; }
+    .btn-hud:hover { opacity: 0.9; }
+    .btn-hint { background-color: var(--hint-color); color: #000; }
+
+    .controls { display: flex; flex-direction: column; gap: 12px; margin-bottom: 14px; }
+    .row { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+    select, button, input[type="text"], input[type="password"], input[type="number"] { padding: 8px 12px; font-size: 13px; border-radius: 8px; border: 1px solid var(--light-border); background-color: var(--card-bg); color: var(--text-color); cursor: pointer; transition: all 0.2s; }
+    select option:disabled { color: var(--locked-color); font-style: italic; }
+    input[type="text"], input[type="password"], input[type="number"] { cursor: text; }
+    select:focus, input:focus { outline: 2px solid var(--primary-color); }
+
+    .action-btn { background-color: var(--primary-color); color: white; border: none; font-weight: 600; }
+    .focus-btn { background-color: #8b5cf6; color: white; border: none; font-weight: 600; }
+    .mode-btn { background-color: #64748b; color: white; border: none; font-weight: 600; }
+    .mode-btn.active { background-color: #16a34a; }
+
+    .status { text-align: center; font-size: 13px; font-weight: bold; min-height: 20px; margin-bottom: 8px; color: var(--error-color); }
+
+    .board-wrapper { position: relative; margin: 0 auto 16px auto; width: 100%; max-width: 400px; aspect-ratio: 1; }
+    .countdown-overlay { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(4px); z-index: 10; justify-content: center; align-items: center; color: white; font-size: 80px; font-weight: bold; border-radius: 12px; }
+
+    .sudoku-board { display: grid; grid-template-columns: repeat(9, 1fr); border: 3px solid var(--border-color); width: 100%; height: 100%; border-radius: 8px; overflow: hidden; box-shadow: var(--shadow); transition: all 0.3s; }
+    .cell { border: 1px solid var(--light-border); display: flex; align-items: center; justify-content: center; font-size: clamp(15px, 4vw, 21px); font-weight: bold; user-select: none; cursor: pointer; background: var(--card-bg); position: relative; transition: background-color 0.15s; }
+    .cell:nth-child(3n) { border-right: 2px solid var(--border-color); }
+    .cell:nth-child(9n) { border-right: none; }
+    .sudoku-board > div:nth-child(n+19):nth-child(-n+27), .sudoku-board > div:nth-child(n+46):nth-child(-n+54) { border-bottom: 2px solid var(--border-color); }
+
+    .cell.block-completed { background-color: var(--block-completed-bg); }
+    .cell.line-highlight { background-color: var(--highlight-line-bg); }
+    .cell.correct { color: var(--correct-color); }
+    .cell.incorrect { color: var(--error-color); background-color: rgba(239, 68, 68, 0.15) !important; }
+    .cell.highlighted { background-color: var(--highlight-match-bg) !important; }
+    .cell.selected { outline: 2px solid var(--primary-color); background-color: var(--selected-bg) !important; z-index: 2; color: #fff; }
+
+    .notes-grid { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); width: 100%; height: 100%; font-size: 9px; color: var(--note-color); text-align: center; pointer-events: none; }
+    .note-item { display: flex; align-items: center; justify-content: center; }
+
+    .numpad { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; max-width: 400px; margin: 0 auto; }
+    .numpad button { padding: 12px 0; font-size: 16px; font-weight: bold; background-color: var(--highlight-line-bg); border: 1px solid var(--light-border); border-radius: 8px; color: var(--text-color); transition: transform 0.1s; }
+    .numpad button:active { transform: scale(0.95); }
+    .numpad button.erase { background-color: rgba(239, 68, 68, 0.15); color: var(--error-color); border-color: rgba(239, 68, 68, 0.3); }
+    .numpad button.undo { background-color: rgba(245, 158, 11, 0.15); color: var(--hint-color); border-color: rgba(245, 158, 11, 0.3); }
+    .numpad button.completed { opacity: 0.25; pointer-events: none; }
+
+    .badges-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .badge-card { background: var(--highlight-line-bg); padding: 10px 8px; border-radius: 8px; font-size: 11px; text-align: center; opacity: 0.4; filter: grayscale(1); transition: all 0.3s; cursor: pointer; border: 1px solid var(--light-border); }
+    .badge-card:hover { transform: translateY(-2px); border-color: var(--primary-color); }
+    .badge-card.unlocked { opacity: 1; filter: grayscale(0); border-color: var(--correct-color); font-weight: bold; background-color: rgba(34, 197, 94, 0.1); }
+    .badge-card.special-unlock { border-color: var(--hint-color); color: var(--hint-color); }
+
+    .history-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .history-table th, .history-table td { border: 1px solid var(--light-border); padding: 8px; text-align: center; }
+    .history-table th { background-color: var(--highlight-line-bg); }
+
+    /* Aba Lateral do Mercadinho */
+    .market-drawer { position: fixed; top: 0; right: -360px; width: 340px; height: 100%; background: var(--card-bg); box-shadow: -5px 0 25px rgba(0,0,0,0.5); z-index: 1050; transition: right 0.3s ease; display: flex; flex-direction: column; border-left: 1px solid var(--light-border); }
+    .market-drawer.active { right: 0; }
+    .market-header { display: flex; justify-content: space-between; align-items: center; padding: 20px; border-bottom: 1px solid var(--light-border); }
+    .market-body { padding: 20px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 12px; }
+    .skin-market-card { background: var(--highlight-line-bg); border: 1px solid var(--light-border); padding: 14px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; }
+
+    /* Modais Customizados */
+    .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.65); backdrop-filter: blur(5px); z-index: 1000; justify-content: center; align-items: center; padding: 16px; opacity: 0; transition: opacity 0.25s ease; }
+    .modal-overlay.active { display: flex; opacity: 1; }
+    
+    .modal-card { background: var(--card-bg); padding: 24px; border-radius: 20px; text-align: center; max-width: 400px; width: 100%; box-shadow: 0 20px 35px rgba(0, 0, 0, 0.4); border: 1px solid var(--light-border); transform: scale(0.9); transition: transform 0.25s ease; }
+    .modal-overlay.active .modal-card { transform: scale(1); }
+
+    .epic-modal-card { background: linear-gradient(135deg, #0f172a, #1e293b); border: 2px solid var(--hint-color); box-shadow: 0 0 50px rgba(245, 158, 11, 0.3); max-width: 440px; }
+    .epic-trophy { font-size: 64px; animation: bounceTrophy 1.5s infinite alternate; margin: 10px 0; }
+    @keyframes bounceTrophy { 0% { transform: translateY(0) scale(1); } 100% { transform: translateY(-12px) scale(1.08); } }
+
+    .love-card { background: rgba(236, 72, 153, 0.1); border: 1px solid rgba(236, 72, 153, 0.3); padding: 18px; border-radius: 12px; font-size: 16px; font-weight: bold; color: #ec4899; margin: 14px 0; line-height: 1.4; }
+    .switch-container { display: flex; justify-content: space-between; align-items: center; margin: 14px 0; font-size: 14px; }
+
+    .admin-achievements-list { display: flex; flex-direction: column; gap: 8px; max-height: 220px; overflow-y: auto; text-align: left; margin: 12px 0; padding-right: 4px; }
+    .admin-achieve-item { display: flex; justify-content: space-between; align-items: center; background: var(--highlight-line-bg); padding: 8px 12px; border-radius: 8px; border: 1px solid var(--light-border); font-size: 13px; }
+
+    @media (min-width: 768px) { body { padding: 24px; } .container, .sidebar { padding: 24px; } }
+  </style>
+</head>
+<body>
+
+<div class="trophies-shelf" id="trophies-shelf" title="Seus Troféus Conquistados">
+  <span style="font-size: 11px; opacity: 0.7;">🏆 Troféus:</span>
+  <div id="trophies-container" style="display: flex; gap: 6px;"></div>
+</div>
+
+<button class="exit-focus-btn" id="btn-exit-focus">🔍 Sair do Modo Foco</button>
+
+<button class="market-toggle-btn" id="btn-open-market">🛒 Mercadinho (<span id="points-display">0</span> pts)</button>
+<button class="settings-toggle-btn" id="btn-settings" title="Configurações (A)">⚙️</button>
+<button class="theme-toggle-btn" id="btn-theme" title="Alternar Tema">🌙</button>
+<button class="easter-egg-btn" id="btn-easter-egg" title="Um recadinho...">💖</button>
+
+<!-- Aba Lateral do Mercadinho -->
+<div class="market-drawer" id="market-drawer">
+  <div class="market-header">
+    <h2 style="margin:0; font-size:18px;">🛒 Mercadinho de Estilos</h2>
+    <button class="action-btn" style="padding: 4px 10px;" id="btn-close-market">✕</button>
+  </div>
+  <div class="market-body">
+    <p style="font-size: 13px; margin: 0; color: var(--note-color);">Ganhe pontos vencendo partidas para desbloquear visuais exclusivos para o seu tabuleiro!</p>
+    <div style="font-weight: bold; font-size: 14px; margin-top: 4px;">Seus Pontos: <span id="market-points-count" style="color: var(--hint-color);">0</span></div>
+    
+    <hr style="border:0; border-top:1px solid var(--light-border); margin: 6px 0;">
+
+    <div class="skin-market-card">
+      <div>
+        <strong>Clássico</strong><br><small style="color: var(--note-color);">O visual original padrão</small>
+      </div>
+      <button class="action-btn" id="skin-btn-classic" onclick="selectSkin('classic')">Usar</button>
+    </div>
+
+    <div class="skin-market-card">
+      <div>
+        <strong>Neon Cyber</strong><br><small style="color: var(--note-color);">Estilo futurista brilhante (50 pts)</small>
+      </div>
+      <button class="action-btn" id="skin-btn-neon" onclick="buyOrSelectSkin('neon', 50)">Comprar</button>
+    </div>
+
+    <div class="skin-market-card">
+      <div>
+        <strong>Retrô Vintage</strong><br><small style="color: var(--note-color);">Tons pastéis aconchegantes (100 pts)</small>
+      </div>
+      <button class="action-btn" id="skin-btn-retro" onclick="buyOrSelectSkin('retro', 100)">Comprar</button>
+    </div>
+  </div>
+</div>
+
+<div class="main-wrapper">
+  <div class="top-section">
+    <div class="container">
+      <h1>Sudoku Pro</h1>
+
+      <div class="hud-bar">
+        <div id="timer-wrapper">⏱️ <span id="timer-display">00:00</span> <button class="btn-hud" id="btn-pause" style="margin-left: 6px;">Pausar</button></div>
+        <button class="btn-hud btn-hint" id="btn-hint">💡 Dica (<span id="hint-count">3</span>)</button>
+      </div>
+
+      <div class="controls">
+        <div class="row">
+          <label>Dificuldade:
+            <select id="difficulty">
+              <option value="easy">Fácil</option>
+              <option value="medium" selected>Médio</option>
+              <option value="hard">Difícil</option>
+              <option value="master" id="opt-master" disabled>🔒 Mestre (Bloqueado)</option>
+              <option value="legendary" id="opt-legendary" disabled>🔒 Lendário (Bloqueado)</option>
+            </select>
+          </label>
+          <div style="display:flex; gap:6px;">
+            <button class="focus-btn" id="btn-toggle-focus">🎯 Foco</button>
+            <button class="action-btn" id="btn-daily">📅 Diário</button>
+            <button class="action-btn" id="btn-new">Novo</button>
+            <button class="action-btn" id="btn-reset">Reset</button>
+          </div>
+        </div>
+
+        <div class="row">
+          <button class="mode-btn" id="btn-mode-toggle">✍️ Modo: Número (N)</button>
+          <span id="error-counter" style="font-size: 12px; font-weight: bold;">Erros: 0/3</span>
+        </div>
+      </div>
+
+      <div class="status" id="status-message"></div>
+      
+      <div class="board-wrapper">
+        <div id="countdown-overlay" class="countdown-overlay"><span id="countdown-text">3</span></div>
+        <div id="board" class="sudoku-board"></div>
+      </div>
+
+      <div class="numpad">
+        <button id="num-btn-1" onclick="inputNumber(1)">1</button>
+        <button id="num-btn-2" onclick="inputNumber(2)">2</button>
+        <button id="num-btn-3" onclick="inputNumber(3)">3</button>
+        <button id="num-btn-4" onclick="inputNumber(4)">4</button>
+        <button id="num-btn-5" onclick="inputNumber(5)">5</button>
+        <button id="num-btn-6" onclick="inputNumber(6)">6</button>
+        <button id="num-btn-7" onclick="inputNumber(7)">7</button>
+        <button id="num-btn-8" onclick="inputNumber(8)">8</button>
+        <button id="num-btn-9" onclick="inputNumber(9)">9</button>
+        <button class="erase" onclick="inputNumber(0)">⌫</button>
+        <button class="undo" onclick="undoLastMove()">↩️</button>
+      </div>
+    </div>
+
+    <div class="sidebar">
+      <div>
+        <h2>🏆 Melhores Tempos</h2>
+        <div style="font-size: 13px; display: flex; flex-direction: column; gap: 8px;">
+          <div>🟢 Fácil: <strong id="best-easy">--:--</strong></div>
+          <div>🟡 Médio: <strong id="best-medium">--:--</strong></div>
+          <div>🔴 Difícil: <strong id="best-hard">--:--</strong></div>
+          <div id="best-master-container" style="display:none; color: var(--hint-color);">🔥 Mestre: <strong id="best-master">--:--</strong></div>
+          <div id="best-legendary-container" style="display:none; color: #a855f7;">🐉 Lendário: <strong id="best-legendary">--:--</strong></div>
+        </div>
+      </div>
+
+      <div>
+        <h2>🏅 Conquistas</h2>
+        <div class="badges-grid">
+          <div class="badge-card" id="badge-fast" onclick="showAchievementInfo('⚡ Flash', 'Vença qualquer partida em menos de 3 minutos.')">⚡ Flash (&lt;3min)</div>
+          <div class="badge-card" id="badge-lightning" onclick="showAchievementInfo('⚡ Relâmpago', 'Vença qualquer partida em menos de 1 minuto e meio (90 segundos).')">⚡ Relâmpago (&lt;1.5min)</div>
+          <div class="badge-card" id="badge-perfect" onclick="showAchievementInfo('🎯 Perfeito', 'Vença uma partida sem cometer nenhum erro.')">🎯 Perfeito (0 erros)</div>
+          <div class="badge-card" id="badge-nohint" onclick="showAchievementInfo('🧐 Estrategista', 'Vença sem usar nenhuma dica.')">🧐 Estratégia (0 dicas)</div>
+          <div class="badge-card" id="badge-streak" onclick="showAchievementInfo('🔥 Streak', 'Vença 3 partidas seguidas.')">🔥 Streak (3 jogos)</div>
+          <div class="badge-card" id="badge-daily" onclick="showAchievementInfo('📅 Foco Diário', 'Complete com sucesso um Desafio Diário.')">📅 Foco Diário</div>
+          
+          <div class="badge-card special-unlock" id="badge-unlock-master" style="grid-column: span 2;" onclick="showAchievementInfo('🔥 Desbravador', 'Vença uma partida na dificuldade Difícil para desbloquear o nível MESTRE.')">🔒 Desbravador (Mestre)</div>
+          <div class="badge-card special-unlock" id="badge-unlock-legendary" style="grid-column: span 2;" onclick="showAchievementInfo('🐉 Deus do Sudoku', 'Vença uma partida na dificuldade Mestre com ZERO erros para desbloquear o modo LENDÁRIO.')">🔒 Deus do Sudoku (Lendário)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-section">
+    <h3>📜 Histórico de Partidas</h3>
+    <table class="history-table">
+      <thead>
+        <tr><th>Modo</th><th>Tempo</th><th>Resultado</th><th>Erros</th></tr>
+      </thead>
+      <tbody id="history-body"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modais Customizados -->
+<div class="modal-overlay" id="achievement-modal">
+  <div class="modal-card">
+    <h2 id="achieve-title">🏅 Conquista</h2>
+    <p id="achieve-desc" style="font-size: 14px; margin: 16px 0; line-height: 1.4; color: var(--text-color);"></p>
+    <button class="action-btn" style="width: 100%; padding: 10px;" onclick="closeAchievementModal()">Entendido</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="win-modal">
+  <div class="modal-card">
+    <h2>🎉 VITÓRIA! 🎉</h2>
+    <div style="margin: 14px 0; font-size: 14px;">
+      ⏱️ Tempo: <span id="win-time">--:--</span> | ❌ Erros: <span id="win-errors">0</span><br>
+      🪙 Pontos Ganhos: <strong id="win-points" style="color: var(--hint-color);">+0</strong>
+    </div>
+    <div id="unlock-message" style="display:none; color: var(--hint-color); font-weight: bold; margin-bottom: 14px;"></div>
+    <button class="action-btn" style="width: 100%; padding: 10px;" onclick="closeWinModal()">Continuar</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="epic-win-modal">
+  <div class="modal-card epic-modal-card">
+    <h2 style="color: var(--hint-color); border-bottom-color: var(--hint-color);">🌟 LENDA DO SUDOKU 🌟</h2>
+    <div class="epic-trophy">🏆</div>
+    <p style="font-size: 14px; line-height: 1.4; margin: 12px 0;">Você desbloqueou absolutamente <strong>todas as conquistas</strong>! Sua dedicação é lendária.</p>
+    <div style="margin: 15px 0;">
+      <label style="font-size: 13px; display: block; margin-bottom: 6px; color: var(--hint-color);">Digite seu nome para o Troféu:</label>
+      <input type="text" id="trophy-owner-name" placeholder="Seu nome..." style="width: 100%; text-align: center; font-weight: bold; background: rgba(255,255,255,0.05); color: #fff; border-color: var(--hint-color);">
+    </div>
+    <button class="action-btn" style="width: 100%; padding: 10px; background-color: var(--hint-color); color: #000; font-weight: bold;" onclick="claimEpicTrophy()">Resgatar Troféu e Reiniciar 🚀</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="easter-egg-modal">
+  <div class="modal-card">
+    <div class="love-card" id="love-message-text">Eu te amo, Benj &lt;3</div>
+    <button class="action-btn" style="padding: 8px 20px;" onclick="closeEasterEggModal()">fofo ✨</button>
+  </div>
+</div>
+
+<!-- Janela de Gestão de Conquistas (Admin) -->
+<div class="modal-overlay" id="admin-achievements-modal">
+  <div class="modal-card" style="max-width: 450px;">
+    <h2>⚙️ Gerenciar Conquistas (Admin)</h2>
+    <p style="font-size: 12px; color: var(--note-color); margin-bottom: 10px;">Ative ou desative individualmente cada conquista abaixo:</p>
+    <div class="admin-achievements-list" id="admin-achievements-container"></div>
+    <button class="action-btn" style="width: 100%; padding: 10px; margin-top: 10px;" onclick="closeAdminAchievementsModal()">Concluir</button>
+  </div>
+</div>
+
+<!-- Modal Genérico de Confirmação -->
+<div class="modal-overlay" id="confirm-modal">
+  <div class="modal-card" style="max-width: 340px;">
+    <h2>⚠️ Confirmação</h2>
+    <p id="confirm-message" style="font-size: 14px; margin: 16px 0; line-height: 1.4;"></p>
+    <div style="display: flex; gap: 10px;">
+      <button class="action-btn" style="flex: 1; padding: 10px; background-color: var(--error-color);" id="confirm-yes-btn">Sim</button>
+      <button class="action-btn" style="flex: 1; padding: 10px; background-color: #64748b;" onclick="closeConfirmModal(false)">Não</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Genérico de Alerta -->
+<div class="modal-overlay" id="alert-modal">
+  <div class="modal-card" style="max-width: 340px;">
+    <h2>ℹ️ Aviso</h2>
+    <p id="alert-message" style="font-size: 14px; margin: 16px 0; line-height: 1.4;"></p>
+    <button class="action-btn" style="width: 100%; padding: 10px;" onclick="closeAlertModal()">OK</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="settings-modal">
+  <div class="modal-card">
+    <h2>⚙️ Configurações Gerais</h2>
+    <div class="switch-container"><span>✏️ Mostrar Botão Rascunho:</span><input type="checkbox" id="toggle-draft" checked style="transform: scale(1.3); cursor: pointer;"></div>
+    <div class="switch-container"><span>⏱️ Mostrar Cronômetro:</span><input type="checkbox" id="toggle-timer" checked style="transform: scale(1.3); cursor: pointer;"></div>
+    <div class="switch-container"><span>💡 Mostrar Botão de Dicas:</span><input type="checkbox" id="toggle-hints" checked style="transform: scale(1.3); cursor: pointer;"></div>
+    <div class="switch-container"><span>❌ Mostrar Contador de Erros:</span><input type="checkbox" id="toggle-errors" checked style="transform: scale(1.3); cursor: pointer;"></div>
+
+    <div id="admin-login-section" style="margin-top: 18px; border-top: 1px solid var(--light-border); padding-top: 14px;">
+      <p style="font-size: 13px; margin-bottom: 8px;">🔒 <strong>Modo Admin:</strong></p>
+      <form onsubmit="event.preventDefault(); checkAdminPassword();" style="display: flex; gap: 6px; justify-content: center;">
+        <input type="password" id="admin-pass-input" placeholder="Digite a senha..." style="width: 150px;">
+        <button type="submit" class="action-btn">Entrar</button>
+      </form>
+      <div id="admin-error-msg" style="font-size: 11px; color: var(--error-color); margin-top: 6px;"></div>
+    </div>
+    
+    <div id="admin-panel" style="display: none; border-top: 1px solid var(--light-border); padding-top: 14px; margin-top: 14px;">
+      <p style="font-size: 13px; color: var(--correct-color); font-weight: bold; margin: 0 0 10px 0;">✅ Modo Admin Ativado!</p>
+      <div class="switch-container"><span>💡 Dicas Infinitas:</span><input type="checkbox" id="infinite-hints-toggle" style="transform: scale(1.3); cursor: pointer;"></div>
+      
+      <!-- Injeção de pontos livres no Admin -->
+      <div style="margin: 10px 0; display: flex; flex-direction: column; gap: 6px; text-align: left;">
+        <label style="font-size: 12px; font-weight: bold;">🪙 Adicionar Pontos:</label>
+        <div style="display: flex; gap: 6px;">
+          <input type="number" id="admin-add-points-input" value="100" min="1" style="flex: 1;">
+          <button class="action-btn" style="background-color: var(--hint-color); color: #000;" onclick="adminAddPoints()">Adicionar</button>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 12px;">
+        <button class="action-btn" style="background-color: #8b5cf6;" onclick="openAdminAchievementsModal()">🏅 Gerenciar Conquistas</button>
+        <button class="action-btn" style="background-color: #2563eb;" onclick="adminUnlockAllAchievements()">✨ Desbloquear Todas</button>
+        <button class="action-btn" style="background-color: #ef4444;" onclick="adminResetAchievements()">🔄 Resetar Conquistas</button>
+        <button class="action-btn" style="background-color: #d97706;" onclick="adminClearRecords()">🗑️ Limpar Apenas Recordes</button>
+        <button class="action-btn" style="background-color: #b91c1c;" onclick="adminClearHistory()">🗑️ Limpar Apenas Histórico</button>
+      </div>
+    </div>
+
+    <button class="action-btn" style="width: 100%; padding: 10px; margin-top: 18px;" onclick="closeSettingsModal()">Fechar</button>
+  </div>
+</div>
+
+<script>
+  const ADMIN_PASSWORD = "1234";
+
+  const baseSolution = [
+    [5,3,4,6,7,8,9,1,2],[6,7,2,1,9,5,3,4,8],[1,9,8,3,4,2,5,6,7],
+    [8,5,9,7,6,1,4,2,3],[4,2,6,8,5,3,7,9,1],[7,1,3,9,2,4,8,5,6],
+    [9,6,1,5,3,7,2,8,4],[2,8,7,4,1,9,6,3,5],[3,4,5,2,8,6,1,7,9]
+  ];
+
+  const loveMessages = ["Eu te amo, Benj <3", "Você é meu lugar favorito no mundo! 💖", "Orgulho demais de você! ✨"];
+  let loveMsgIndex = 0;
+
+  let currentSolution = [], initialBoard = [], userBoard = [], notesBoard = [];
+  let moveHistory = [], selectedCell = null;
+  let errorCount = 0, hintsLeft = 3, hintsUsedInGame = 0;
+  let timerSeconds = 0, timerInterval = null, isPaused = false;
+  let isNoteMode = false, isDailyGame = false, isAdminLoggedIn = false, infiniteHintsEnabled = false;
+  let streakCount = parseInt(localStorage.getItem('sudoku_streak') || '0');
+
+  // Sistema de Pontos e Skins do Mercadinho
+  let playerPoints = parseInt(localStorage.getItem('sudoku_points') || '0');
+  let unlockedSkins = JSON.parse(localStorage.getItem('sudoku_unlocked_skins') || '["classic"]');
+  let activeSkin = localStorage.getItem('sudoku_active_skin') || 'classic';
+
+  let unlockedAchievements = JSON.parse(localStorage.getItem('sudoku_achievements') || '[]');
+  let earnedTrophies = JSON.parse(localStorage.getItem('sudoku_trophies') || '[]');
+
+  const achievementMeta = {
+    'badge-fast': { name: '⚡ Flash (<3min)', desc: 'Vença qualquer partida em menos de 3 minutos.' },
+    'badge-lightning': { name: '⚡ Relâmpago (<1.5min)', desc: 'Vença qualquer partida em menos de 1 minuto e meio.' },
+    'badge-perfect': { name: '🎯 Perfeito (0 erros)', desc: 'Vença uma partida sem cometer nenhum erro.' },
+    'badge-nohint': { name: '🧐 Estrategista (0 dicas)', desc: 'Vença sem usar nenhuma dica.' },
+    'badge-streak': { name: '🔥 Streak (3 jogos)', desc: 'Vença 3 partidas seguidas.' },
+    'badge-daily': { name: '📅 Foco Diário', desc: 'Complete com sucesso um Desafio Diário.' },
+    'badge-unlock-master': { name: '🔒 Desbravador (Mestre)', desc: 'Vença no Difícil para desbloquear o Mestre.' },
+    'badge-unlock-legendary': { name: '🔒 Deus do Sudoku (Lendário)', desc: 'Vença no Mestre sem erros para desbloquear o Lendário.' }
+  };
+
+  const allAchievementIds = Object.keys(achievementMeta);
+
+  const boardEl = document.getElementById('board');
+  const difficultyEl = document.getElementById('difficulty');
+  const statusEl = document.getElementById('status-message');
+  const timerDisplay = document.getElementById('timer-display');
+  const btnModeToggle = document.getElementById('btn-mode-toggle');
+  const hintCountEl = document.getElementById('hint-count');
+  const errorCounterEl = document.getElementById('error-counter');
+
+  function updatePointsDisplay() {
+    document.getElementById('points-display').textContent = playerPoints;
+    document.getElementById('market-points-count').textContent = playerPoints;
+    localStorage.setItem('sudoku_points', playerPoints);
+  }
+
+  // Controles da Aba Lateral do Mercadinho
+  const marketDrawer = document.getElementById('market-drawer');
+  document.getElementById('btn-open-market').addEventListener('click', () => {
+    updateMarketUI();
+    marketDrawer.classList.add('active');
+  });
+  document.getElementById('btn-close-market').addEventListener('click', () => {
+    marketDrawer.classList.remove('active');
+  });
+
+  function updateMarketUI() {
+    updatePointsDisplay();
+    const skins = ['classic', 'neon', 'retro'];
+    const prices = { classic: 0, neon: 50, retro: 100 };
+
+    skins.forEach(skin => {
+      const btn = document.getElementById(`skin-btn-${skin}`);
+      if (!btn) return;
+      const isOwned = unlockedSkins.includes(skin);
+      const isActive = (activeSkin === skin);
+
+      if (isActive) {
+        btn.textContent = 'Em Uso';
+        btn.disabled = true;
+        btn.style.backgroundColor = 'var(--correct-color)';
+        btn.style.color = '#fff';
+      } else if (isOwned) {
+        btn.textContent = 'Selecionar';
+        btn.disabled = false;
+        btn.style.backgroundColor = 'var(--primary-color)';
+        btn.style.color = '#fff';
+      } else {
+        btn.textContent = `Comprar (${prices[skin]} pts)`;
+        btn.disabled = false;
+        btn.style.backgroundColor = 'var(--hint-color)';
+        btn.style.color = '#000';
+      }
+    });
+  }
+
+  function buyOrSelectSkin(skinName, price) {
+    if (unlockedSkins.includes(skinName)) {
+      selectSkin(skinName);
+    } else {
+      if (playerPoints >= price) {
+        playerPoints -= price;
+        unlockedSkins.push(skinName);
+        localStorage.setItem('sudoku_unlocked_skins', JSON.stringify(unlockedSkins));
+        selectSkin(skinName);
+        showCustomAlert('Skin comprada com sucesso!');
+      } else {
+        showCustomAlert('Pontos insuficientes para comprar esta skin!');
+      }
+    }
+  }
+
+  function selectSkin(skinName) {
+    activeSkin = skinName;
+    localStorage.setItem('sudoku_active_skin', activeSkin);
+    applyActiveSkinToBoard();
+    updateMarketUI();
+  }
+
+  function applyActiveSkinToBoard() {
+    boardEl.className = 'sudoku-board';
+    if (activeSkin !== 'classic') {
+      boardEl.classList.add(`skin-${activeSkin}`);
+    }
+  }
+
+  // Admin adicionar pontos livres
+  function adminAddPoints() {
+    const qty = parseInt(document.getElementById('admin-add-points-input').value);
+    if (isNaN(qty) || qty <= 0) {
+      showCustomAlert('Insira uma quantidade válida de pontos.');
+      return;
+    }
+    playerPoints += qty;
+    updatePointsDisplay();
+    showCustomAlert(`Adicionado ${qty} pontos com sucesso!`);
+  }
+
+  let confirmCallback = null;
+  function showCustomAlert(msg) {
+    document.getElementById('alert-message').textContent = msg;
+    document.getElementById('alert-modal').classList.add('active');
+  }
+  function closeAlertModal() {
+    document.getElementById('alert-modal').classList.remove('active');
+  }
+
+  function showCustomConfirm(msg, callback) {
+    document.getElementById('confirm-message').textContent = msg;
+    confirmCallback = callback;
+    document.getElementById('confirm-modal').classList.add('active');
+  }
+  function closeConfirmModal(result) {
+    document.getElementById('confirm-modal').classList.remove('active');
+    if (confirmCallback) {
+      confirmCallback(result);
+      confirmCallback = null;
+    }
+  }
+  document.getElementById('confirm-yes-btn').addEventListener('click', () => closeConfirmModal(true));
+
+  function initGlobalSettings() {
+    const settingsMap = {
+      'toggle-draft': 'sudoku_cfg_draft',
+      'toggle-timer': 'sudoku_cfg_timer',
+      'toggle-hints': 'sudoku_cfg_hints',
+      'toggle-errors': 'sudoku_cfg_errors'
+    };
+
+    for (const [elementId, storageKey] of Object.entries(settingsMap)) {
+      const el = document.getElementById(elementId);
+      const savedVal = localStorage.getItem(storageKey);
+      
+      if (savedVal !== null) {
+        el.checked = (savedVal === 'true');
+      }
+
+      applySettingChange(elementId, el.checked);
+
+      el.addEventListener('change', (e) => {
+        localStorage.setItem(storageKey, e.target.checked);
+        applySettingChange(elementId, e.target.checked);
+      });
+    }
+  }
+
+  function applySettingChange(elementId, isChecked) {
+    if (elementId === 'toggle-draft') {
+      document.getElementById('btn-mode-toggle').style.display = isChecked ? 'block' : 'none';
+    } else if (elementId === 'toggle-timer') {
+      document.getElementById('timer-wrapper').style.display = isChecked ? 'block' : 'none';
+    } else if (elementId === 'toggle-hints') {
+      document.getElementById('btn-hint').style.display = isChecked ? 'block' : 'none';
+    } else if (elementId === 'toggle-errors') {
+      errorCounterEl.style.display = isChecked ? 'inline' : 'none';
+    }
+  }
+
+  function initAchievements() {
+    allAchievementIds.forEach(badgeId => {
+      const badgeEl = document.getElementById(badgeId);
+      if (badgeEl) {
+        if (unlockedAchievements.includes(badgeId)) {
+          badgeEl.classList.add('unlocked');
+          if (badgeId === 'badge-unlock-master') badgeEl.textContent = '🔥 Desbravador (Desbloqueado)';
+          if (badgeId === 'badge-unlock-legendary') badgeEl.textContent = '🐉 Deus do Sudoku (Desbloqueado)';
+        } else {
+          badgeEl.classList.remove('unlocked');
+          if (badgeId === 'badge-unlock-master') badgeEl.textContent = '🔒 Desbravador (Mestre)';
+          if (badgeId === 'badge-unlock-legendary') badgeEl.textContent = '🔒 Deus do Sudoku (Lendário)';
+        }
+      }
+    });
+    
+    const hasMaster = unlockedAchievements.includes('badge-unlock-master');
+    const hasLegendary = unlockedAchievements.includes('badge-unlock-legendary');
+    
+    const optMaster = document.getElementById('opt-master');
+    optMaster.disabled = !hasMaster;
+    optMaster.textContent = hasMaster ? '🔥 Mestre' : '🔒 Mestre (Bloqueado)';
+    document.getElementById('best-master-container').style.display = hasMaster ? 'block' : 'none';
+
+    const optLegendary = document.getElementById('opt-legendary');
+    optLegendary.disabled = !hasLegendary;
+    optLegendary.textContent = hasLegendary ? '🐉 Lendário' : '🔒 Lendário (Bloqueado)';
+    document.getElementById('best-legendary-container').style.display = hasLegendary ? 'block' : 'none';
+
+    renderTrophiesShelf();
+  }
+
+  function renderTrophiesShelf() {
+    const container = document.getElementById('trophies-container');
+    container.innerHTML = '';
+    if (earnedTrophies.length === 0) {
+      document.getElementById('trophies-shelf').style.display = 'none';
+      return;
+    }
+    document.getElementById('trophies-shelf').style.display = 'flex';
+    earnedTrophies.forEach((trophy, index) => {
+      const div = document.createElement('div');
+      div.className = 'trophy-badge';
+      div.title = `Troféu #${index + 1} de ${trophy.name}`;
+      div.innerHTML = `🏆 ${trophy.name}`;
+      container.appendChild(div);
+    });
+  }
+
+  function awardAchievement(badgeId, unlockMessage = null) {
+    if (!unlockedAchievements.includes(badgeId)) {
+      unlockedAchievements.push(badgeId);
+      localStorage.setItem('sudoku_achievements', JSON.stringify(unlockedAchievements));
+      initAchievements();
+
+      if (unlockMessage) {
+        const unlockMsgEl = document.getElementById('unlock-message');
+        unlockMsgEl.style.display = 'block';
+        unlockMsgEl.innerHTML = unlockMessage;
+      }
+    }
+  }
+
+  function checkAllAchievementsCompleted() {
+    return allAchievementIds.every(id => unlockedAchievements.includes(id));
+  }
+
+  function openAdminAchievementsModal() {
+    const container = document.getElementById('admin-achievements-container');
+    container.innerHTML = '';
+    
+    allAchievementIds.forEach(id => {
+      const isUnlocked = unlockedAchievements.includes(id);
+      const div = document.createElement('div');
+      div.className = 'admin-achieve-item';
+      div.innerHTML = `
+        <span>${achievementMeta[id].name}</span>
+        <label style="display:flex; align-items:center; gap:6px; cursor:pointer; font-size:12px;">
+          <span>${isUnlocked ? 'Desbloqueado' : 'Bloqueado'}</span>
+          <input type="checkbox" ${isUnlocked ? 'checked' : ''} onchange="toggleAdminAchievement('${id}', this.checked)" style="transform: scale(1.2); cursor:pointer;">
+        </label>
+      `;
+      container.appendChild(div);
+    });
+
+    document.getElementById('admin-achievements-modal').classList.add('active');
+  }
+
+  function closeAdminAchievementsModal() {
+    document.getElementById('admin-achievements-modal').classList.remove('active');
+    initAchievements();
+  }
+
+  function toggleAdminAchievement(badgeId, shouldUnlock) {
+    if (shouldUnlock) {
+      if (!unlockedAchievements.includes(badgeId)) {
+        unlockedAchievements.push(badgeId);
+      }
+    } else {
+      unlockedAchievements = unlockedAchievements.filter(id => id !== badgeId);
+    }
+    localStorage.setItem('sudoku_achievements', JSON.stringify(unlockedAchievements));
+    openAdminAchievementsModal();
+  }
+
+  function adminUnlockAllAchievements() {
+    allAchievementIds.forEach(id => {
+      if (!unlockedAchievements.includes(id)) unlockedAchievements.push(id);
+    });
+    localStorage.setItem('sudoku_achievements', JSON.stringify(unlockedAchievements));
+    initAchievements();
+    showCustomAlert('Todas as conquistas foram desbloqueadas com sucesso!');
+  }
+
+  function adminResetAchievements() {
+    showCustomConfirm('Tem certeza que deseja resetar todas as conquistas e os modos especiais?', (res) => {
+      if (res) {
+        localStorage.removeItem('sudoku_achievements');
+        unlockedAchievements = [];
+        initAchievements();
+        showCustomAlert('Conquistas resetadas com sucesso!');
+      }
+    });
+  }
+
+  function adminClearRecords() {
+    showCustomConfirm('Tem certeza que deseja limpar todos os recordes (melhores tempos)?', (res) => {
+      if (res) {
+        ['easy', 'medium', 'hard', 'master', 'legendary'].forEach(diff => {
+          localStorage.removeItem(`best_time_${diff}`);
+        });
+        loadBestTimes();
+        showCustomAlert('Recordes limpos com sucesso!');
+      }
+    });
+  }
+
+  function adminClearHistory() {
+    showCustomConfirm('Tem certeza que deseja limpar o histórico de partidas?', (res) => {
+      if (res) {
+        document.getElementById('history-body').innerHTML = '';
+        showCustomAlert('Histórico limpo com sucesso!');
+      }
+    });
+  }
+
+  function startTimer() {
+    clearInterval(timerInterval);
+    timerSeconds = 0;
+    isPaused = false;
+    document.getElementById('btn-pause').textContent = 'Pausar';
+    timerInterval = setInterval(() => { 
+      if (!isPaused) { timerSeconds++; timerDisplay.textContent = formatTime(timerSeconds); } 
+    }, 1000);
+  }
+
+  function formatTime(s) {
+    return `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`;
+  }
+
+  function shuffleBoard(matrix, seed = null) {
+    let board = matrix.map(row => [...row]);
+    let s = seed ? parseInt(seed) : Math.floor(Math.random() * 100000);
+    const pseudoRandom = () => { let x = Math.sin(s++) * 10000; return x - Math.floor(x); };
+
+    let nums = [1,2,3,4,5,6,7,8,9].sort(() => pseudoRandom() - 0.5);
+    let map = {};
+    for(let i=0; i<9; i++) map[i+1] = nums[i];
+    board = board.map(row => row.map(val => map[val]));
+
+    for (let b = 0; b < 3; b++) {
+      for (let i = 0; i < 2; i++) {
+        let r1 = b * 3 + Math.floor(pseudoRandom() * 3);
+        let r2 = b * 3 + Math.floor(pseudoRandom() * 3);
+        [board[r1], board[r2]] = [board[r2], board[r1]];
+      }
+    }
+
+    if (pseudoRandom() > 0.5) { board = board[0].map((_, colIndex) => board.map(row => row[colIndex])); }
+    return board;
+  }
+
+  function generatePuzzle(isDaily = false) {
+    isDailyGame = isDaily;
+    const seed = isDaily ? new Date().toISOString().slice(0,10).replace(/-/g,'') : null;
+    currentSolution = shuffleBoard(baseSolution, seed);
+    
+    let removalCount = 30;
+    const currentDiff = difficultyEl.value;
+    if (currentDiff === 'medium') removalCount = 42;
+    if (currentDiff === 'hard') removalCount = 54;
+    if (currentDiff === 'master') removalCount = 58;
+    if (currentDiff === 'legendary') removalCount = 62;
+
+    initialBoard = currentSolution.map(row => [...row]);
+    let removed = 0;
+    while (removed < removalCount) {
+      let r = Math.floor(Math.random() * 9);
+      let c = Math.floor(Math.random() * 9);
+      if (initialBoard[r][c] !== 0) { initialBoard[r][c] = 0; removed++; }
+    }
+
+    notesBoard = Array(9).fill(0).map(() => Array(9).fill(0).map(() => new Set()));
+    moveHistory = []; selectedCell = null; hintsLeft = 3; hintsUsedInGame = 0;
+    updateHintDisplay();
+    statusEl.textContent = isDaily ? '📅 Desafio Diário Ativo!' : '';
+    startTimer();
+    resetGame();
+  }
+
+  function updateHintDisplay() { hintCountEl.textContent = infiniteHintsEnabled ? '∞' : hintsLeft; }
+
+  function resetGame() {
+    userBoard = initialBoard.map(row => [...row]);
+    errorCount = 0; errorCounterEl.textContent = `Erros: ${errorCount}/3`;
+    selectedCell = null;
+    renderBoard();
+  }
+
+  function isBlockCompleted(blockR, blockC) {
+    for (let r = blockR * 3; r < blockR * 3 + 3; r++) {
+      for (let c = blockC * 3; c < blockC * 3 + 3; c++) {
+        if (userBoard[r][c] !== currentSolution[r][c]) return false;
+      }
+    }
+    return true;
+  }
+
+  function updateNumpadState() {
+    const counts = {};
+    for (let i = 1; i <= 9; i++) counts[i] = 0;
+    for (let r = 0; r < 9; r++) {
+      for (let c = 0; c < 9; c++) {
+        if (userBoard[r][c] === currentSolution[r][c]) counts[userBoard[r][c]]++;
+      }
+    }
+    for (let i = 1; i <= 9; i++) {
+      const btn = document.getElementById(`num-btn-${i}`);
+      if (btn) {
+        if (counts[i] === 9) btn.classList.add('completed');
+        else btn.classList.remove('completed');
+      }
+    }
+  }
+
+  function renderBoard() {
+    boardEl.innerHTML = '';
+    if (isPaused) { boardEl.innerHTML = '<div style="position:absolute;top:45%;left:25%;font-weight:bold;font-size:18px;">Jogo Pausado ⏸️</div>'; return; }
+
+    let highlightVal = selectedCell ? userBoard[selectedCell.r][selectedCell.c] : null;
+
+    for (let r = 0; r < 9; r++) {
+      for (let c = 0; c < 9; c++) {
+        const cell = document.createElement('div');
+        cell.classList.add('cell');
+        const val = userBoard[r][c];
+
+        const blockR = Math.floor(r / 3);
+        const blockC = Math.floor(c / 3);
+        if (isBlockCompleted(blockR, blockC)) cell.classList.add('block-completed');
+
+        if (selectedCell && (selectedCell.r === r || selectedCell.c === c)) cell.classList.add('line-highlight');
+        if (selectedCell && selectedCell.r === r && selectedCell.c === c) cell.classList.add('selected');
+
+        if (val !== 0) {
+          cell.textContent = val;
+          if (initialBoard[r][c] === 0) cell.classList.add(val === currentSolution[r][c] ? 'correct' : 'incorrect');
+          if (highlightVal && val === highlightVal) cell.classList.add('highlighted');
+        } else if (notesBoard[r][c].size > 0) {
+          const notesGrid = document.createElement('div');
+          notesGrid.className = 'notes-grid';
+          for (let n = 1; n <= 9; n++) {
+            const item = document.createElement('div');
+            item.className = 'note-item';
+            item.textContent = notesBoard[r][c].has(n) ? n : '';
+            notesGrid.appendChild(item);
+          }
+          cell.appendChild(notesGrid);
+        }
+
+        cell.addEventListener('click', () => { selectedCell = { r, c }; renderBoard(); });
+        boardEl.appendChild(cell);
+      }
+    }
+    updateNumpadState();
+  }
+
+  function inputNumber(num) {
+    if (!selectedCell || isPaused) return;
+    const { r, c } = selectedCell;
+    if (initialBoard[r][c] !== 0) return;
+
+    moveHistory.push({ r, c, val: userBoard[r][c], notes: new Set(notesBoard[r][c]) });
+
+    if (isNoteMode && num !== 0) {
+      if (notesBoard[r][c].has(num)) notesBoard[r][c].delete(num);
+      else notesBoard[r][c].add(num);
+      userBoard[r][c] = 0;
+    } else {
+      userBoard[r][c] = num;
+      notesBoard[r][c].clear();
+
+      if (num !== 0 && num !== currentSolution[r][c]) {
+        errorCount++;
+        errorCounterEl.textContent = `Erros: ${errorCount}/3`;
+        
+        const isErrorCounterActive = errorCounterEl.style.display !== 'none';
+        if (isErrorCounterActive && errorCount >= 3) {
+          statusEl.textContent = '3 erros! Derrota...';
+          streakCount = 0;
+          localStorage.setItem('sudoku_streak', 0);
+          addHistoryRow('Derrota');
+          setTimeout(resetGame, 1500);
+          return;
+        }
+      }
+    }
+
+    renderBoard();
+    checkWin();
+  }
+
+  function undoLastMove() {
+    if (moveHistory.length === 0 || isPaused) return;
+    const last = moveHistory.pop();
+    userBoard[last.r][last.c] = last.val;
+    notesBoard[last.r][last.c] = last.notes;
+    renderBoard();
+  }
+
+  function giveHint() {
+    if ((!infiniteHintsEnabled && hintsLeft <= 0) || isPaused) return;
+    
+    const celulasDisponiveis = [];
+    for (let row = 0; row < 9; row++) {
+      for (let col = 0; col < 9; col++) {
+        if (userBoard[row][col] !== currentSolution[row][col] && initialBoard[row][col] === 0) {
+          celulasDisponiveis.push({ r: row, c: col });
+        }
+      }
+    }
+
+    if (celulasDisponiveis.length > 0) {
+      const randomIndex = Math.floor(Math.random() * celulasDisponiveis.length);
+      const target = celulasDisponiveis[randomIndex];
+      selectedCell = { r: target.r, c: target.c };
+      inputNumber(currentSolution[target.r][target.c]);
+
+      if (!infiniteHintsEnabled) { hintsLeft--; hintsUsedInGame++; }
+      updateHintDisplay();
+    }
+  }
+
+  function checkWin() {
+    for (let r = 0; r < 9; r++) {
+      for (let c = 0; c < 9; c++) {
+        if (userBoard[r][c] !== currentSolution[r][c]) return;
+      }
+    }
+    clearInterval(timerInterval);
+    document.getElementById('win-time').textContent = formatTime(timerSeconds);
+    document.getElementById('win-errors').textContent = errorCount;
+    document.getElementById('unlock-message').style.display = 'none';
+
+    // Atribuição de Pontos por Vitória baseada na dificuldade
+    let earnedPoints = 20;
+    const diffVal = difficultyEl.value;
+    if (diffVal === 'medium') earnedPoints = 40;
+    if (diffVal === 'hard') earnedPoints = 80;
+    if (diffVal === 'master') earnedPoints = 150;
+    if (diffVal === 'legendary') earnedPoints = 300;
+
+    playerPoints += earnedPoints;
+    updatePointsDisplay();
+    document.getElementById('win-points').textContent = `+${earnedPoints}`;
+
+    streakCount++;
+    localStorage.setItem('sudoku_streak', streakCount);
+
+    if (streakCount >= 3) awardAchievement('badge-streak');
+    if (timerSeconds < 180) awardAchievement('badge-fast');
+    if (timerSeconds < 90) awardAchievement('badge-lightning');
+    if (errorCount === 0) awardAchievement('badge-perfect');
+    if (hintsUsedInGame === 0) awardAchievement('badge-nohint');
+    if (isDailyGame) awardAchievement('badge-daily');
+    
+    if (diffVal === 'hard' && !isDailyGame) {
+      awardAchievement('badge-unlock-master', '✨ NOVA DIFICULDADE DESBLOQUEADA: MESTRE 🔥');
+    }
+    if (diffVal === 'master' && errorCount === 0 && !isDailyGame) {
+      awardAchievement('badge-unlock-legendary', '✨ NOVA DIFICULDADE DESBLOQUEADA: LENDÁRIO 🐉');
+    }
+
+    updateBestTime(diffVal, timerSeconds);
+    addHistoryRow('Vitória');
+
+    if (checkAllAchievementsCompleted()) {
+      document.getElementById('epic-win-modal').classList.add('active');
+    } else {
+      document.getElementById('win-modal').classList.add('active');
+    }
+  }
+
+  function claimEpicTrophy() {
+    const nameInput = document.getElementById('trophy-owner-name').value.trim() || 'Jogador(a)';
+    earnedTrophies.push({ name: nameInput });
+    localStorage.setItem('sudoku_trophies', JSON.stringify(earnedTrophies));
+
+    localStorage.removeItem('sudoku_achievements');
+    ['easy', 'medium', 'hard', 'master', 'legendary'].forEach(diff => {
+      localStorage.removeItem(`best_time_${diff}`);
+    });
+    localStorage.setItem('sudoku_streak', '0');
+
+    unlockedAchievements = [];
+    streakCount = 0;
+
+    document.getElementById('epic-win-modal').classList.remove('active');
+    document.getElementById('trophy-owner-name').value = '';
+    
+    initAchievements();
+    loadBestTimes();
+    generatePuzzle();
+  }
+
+  function updateBestTime(diff, seconds) {
+    const key = `best_time_${diff}`;
+    const best = localStorage.getItem(key);
+    if (!best || seconds < parseInt(best)) {
+      localStorage.setItem(key, seconds);
+      loadBestTimes();
+    }
+  }
+
+  function loadBestTimes() {
+    ['easy', 'medium', 'hard', 'master', 'legendary'].forEach(diff => {
+      const best = localStorage.getItem(`best_time_${diff}`);
+      const el = document.getElementById(`best-${diff}`);
+      if (el) el.textContent = best ? formatTime(parseInt(best)) : '--:--';
+    });
+  }
+
+  function addHistoryRow(result) {
+    const tbody = document.getElementById('history-body');
+    const tr = document.createElement('tr');
+    const modeLabel = isDailyGame ? 'Diário' : difficultyEl.options[difficultyEl.selectedIndex].text.replace(/🔒|🔥|🐉|\(Bloqueado\)/g, '').trim();
+    tr.innerHTML = `<td>${modeLabel}</td><td>${formatTime(timerSeconds)}</td><td style="color: ${result === 'Vitória' ? 'var(--correct-color)' : 'var(--error-color)'}; font-weight:bold;">${result}</td><td>${errorCount}</td>`;
+    tbody.prepend(tr);
+  }
+
+  function showAchievementInfo(title, desc) {
+    if (!isPaused) { isPaused = true; document.getElementById('btn-pause').textContent = 'Retomar'; renderBoard(); }
+    document.getElementById('achieve-title').textContent = title;
+    document.getElementById('achieve-desc').textContent = desc;
+    document.getElementById('achievement-modal').classList.add('active');
+  }
+
+  function closeAchievementModal() {
+    document.getElementById('achievement-modal').classList.remove('active');
+    startCountdownOverlay();
+  }
+
+  function startCountdownOverlay() {
+    const overlay = document.getElementById('countdown-overlay');
+    const text = document.getElementById('countdown-text');
+    overlay.style.display = 'flex'; 
+    let count = 3; text.textContent = count;
+    const interval = setInterval(() => {
+      count--;
+      if (count > 0) { text.textContent = count; } else {
+        clearInterval(interval); overlay.style.display = 'none'; isPaused = false;
+        document.getElementById('btn-pause').textContent = 'Pausar'; renderBoard();
+      }
+    }, 1000);
+  }
+
+  function enterFocusMode() {
+    if (isPaused) { isPaused = false; document.getElementById('btn-pause').textContent = 'Pausar'; }
+    document.body.classList.add('focus-mode'); renderBoard();
+  }
+
+  function exitFocusMode() { document.body.classList.remove('focus-mode'); renderBoard(); }
+
+  document.getElementById('btn-toggle-focus').addEventListener('click', enterFocusMode);
+  document.getElementById('btn-exit-focus').addEventListener('click', exitFocusMode);
+
+  function checkAdminPassword() {
+    const passInput = document.getElementById('admin-pass-input').value;
+    const errorMsg = document.getElementById('admin-error-msg');
+    if (passInput === ADMIN_PASSWORD) {
+      isAdminLoggedIn = true; errorMsg.textContent = '';
+      document.getElementById('admin-login-section').style.display = 'none';
+      document.getElementById('admin-panel').style.display = 'block';
+    } else { errorMsg.textContent = 'Senha incorreta!'; }
+  }
+
+  document.getElementById('infinite-hints-toggle').addEventListener('change', (e) => { infiniteHintsEnabled = e.target.checked; updateHintDisplay(); });
+
+  // Correção essencial: Alteração do tabuleiro imediata ao trocar o seletor de dificuldade
+  difficultyEl.addEventListener('change', () => {
+    generatePuzzle(false);
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (document.getElementById('settings-modal').classList.contains('active') || document.getElementById('achievement-modal').classList.contains('active') || document.getElementById('epic-win-modal').classList.contains('active') || document.getElementById('admin-achievements-modal').classList.contains('active')) {
+      if (e.key === 'Escape') { closeSettingsModal(); closeAchievementModal(); closeAdminAchievementsModal(); } return;
+    }
+    if (e.key === 'Escape') { closeEasterEggModal(); closeWinModal(); marketDrawer.classList.remove('active'); }
+    if (e.key >= '1' && e.key <= '9') inputNumber(parseInt(e.key));
+    if (e.key === 'Backspace' || e.key === 'Delete') inputNumber(0);
+    if (e.key.toLowerCase() === 'n') toggleNoteMode();
+    if (e.key.toLowerCase() === 'a') document.getElementById('settings-modal').classList.add('active');
+    
+    if (selectedCell) {
+      if (e.key === 'ArrowUp') { e.preventDefault(); if (selectedCell.r > 0) selectedCell.r--; }
+      if (e.key === 'ArrowDown') { e.preventDefault(); if (selectedCell.r < 8) selectedCell.r++; }
+      if (e.key === 'ArrowLeft') { e.preventDefault(); if (selectedCell.c > 0) selectedCell.c--; }
+      if (e.key === 'ArrowRight') { e.preventDefault(); if (selectedCell.c < 8) selectedCell.c++; }
+      renderBoard();
+    }
+  });
+
+  function toggleNoteMode() {
+    isNoteMode = !isNoteMode;
+    btnModeToggle.textContent = isNoteMode ? '✏️ Modo: Rascunho (N)' : '✍️ Modo: Número (N)';
+    btnModeToggle.classList.toggle('active', isNoteMode);
+  }
+
+  document.getElementById('btn-settings').addEventListener('click', () => { document.getElementById('settings-modal').classList.add('active'); });
+  document.getElementById('btn-theme').addEventListener('click', () => {
+    document.body.classList.toggle('light-mode');
+    document.getElementById('btn-theme').textContent = document.body.classList.contains('light-mode') ? '☀️' : '🌙';
+  });
+  document.getElementById('btn-easter-egg').addEventListener('click', () => {
+    document.getElementById('love-message-text').textContent = loveMessages[loveMsgIndex];
+    loveMsgIndex = (loveMsgIndex + 1) % loveMessages.length;
+    document.getElementById('easter-egg-modal').classList.add('active');
+  });
+
+  function closeSettingsModal() { document.getElementById('settings-modal').classList.remove('active'); }
+  function closeEasterEggModal() { document.getElementById('easter-egg-modal').classList.remove('active'); }
+  function closeWinModal() { document.getElementById('win-modal').classList.remove('active'); generatePuzzle(); }
+
+  document.getElementById('btn-mode-toggle').addEventListener('click', toggleNoteMode);
+  document.getElementById('btn-new').addEventListener('click', () => generatePuzzle(false));
+  document.getElementById('btn-daily').addEventListener('click', () => generatePuzzle(true));
+  document.getElementById('btn-reset').addEventListener('click', resetGame);
+  document.getElementById('btn-hint').addEventListener('click', giveHint);
+  document.getElementById('btn-pause').addEventListener('click', () => { 
+    isPaused = !isPaused; 
+    document.getElementById('btn-pause').textContent = isPaused ? 'Retomar' : 'Pausar'; renderBoard(); 
+  });
+
+  // Inicializações
+  initGlobalSettings();
+  initAchievements();
+  loadBestTimes();
+  updatePointsDisplay();
+  applyActiveSkinToBoard();
+  generatePuzzle();
+</script>
+</body>
+</html>
