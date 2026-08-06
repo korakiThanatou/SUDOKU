@@ -1417,11 +1417,14 @@
 
   function startTimer() {
     clearInterval(timerInterval);
-    timerSeconds = 0;
     isPaused = false;
     document.getElementById('btn-pause').textContent = 'Pausar';
     timerInterval = setInterval(() => { 
-      if (!isPaused) { timerSeconds++; timerDisplay.textContent = formatTime(timerSeconds); } 
+      if (!isPaused) { 
+        timerSeconds++; 
+        timerDisplay.textContent = formatTime(timerSeconds);
+        saveGameState(); // Salva periodicamente com o tempo atualizado
+      } 
     }, 1000);
   }
 
@@ -1450,6 +1453,55 @@
     if (pseudoRandom() > 0.5) { board = board[0].map((_, colIndex) => board.map(row => row[colIndex])); }
     return board;
   }
+
+  // --- FUNÇÕES DE PERSISTÊNCIA DO JOGO ---
+  function saveGameState() {
+    const gameState = {
+      currentSolution,
+      initialBoard,
+      userBoard,
+      notesBoard: notesBoard.map(row => row.map(set => Array.from(set))), // Converte Sets para Arrays para salvar em JSON
+      moveHistory: moveHistory.map(m => ({ r: m.r, c: m.c, val: m.val, notes: Array.from(m.notes) })),
+      errorCount,
+      hintsLeft,
+      hintsUsedInGame,
+      timerSeconds,
+      isDailyGame,
+      difficulty: difficultyEl.value
+    };
+    localStorage.setItem('sudoku_active_game', JSON.stringify(gameState));
+  }
+
+  function loadGameState() {
+    const saved = localStorage.getItem('sudoku_active_game');
+    if (!saved) return false;
+    try {
+      const data = JSON.parse(saved);
+      currentSolution = data.currentSolution;
+      initialBoard = data.initialBoard;
+      userBoard = data.userBoard;
+      notesBoard = data.notesBoard.map(row => row.map(arr => new Set(arr))); // Restaura os Arrays para Sets
+      moveHistory = data.moveHistory.map(m => ({ r: m.r, c: m.c, val: m.val, notes: new Set(m.notes) }));
+      errorCount = data.errorCount;
+      hintsLeft = data.hintsLeft;
+      hintsUsedInGame = data.hintsUsedInGame;
+      timerSeconds = data.timerSeconds;
+      isDailyGame = data.isDailyGame;
+      difficultyEl.value = data.difficulty;
+
+      errorCounterEl.textContent = `Erros: ${errorCount}/3`;
+      updateHintDisplay();
+      timerDisplay.textContent = formatTime(timerSeconds);
+      statusEl.textContent = isDailyGame ? '📅 Desafio Diário Ativo!' : '';
+      startTimer();
+      renderBoard();
+      return true;
+    } catch(e) {
+      console.error("Erro ao carregar jogo salvo:", e);
+      return false;
+    }
+  }
+  // ---------------------------------------
 
   function generatePuzzle(isDaily = false) {
     isDailyGame = isDaily;
@@ -1485,7 +1537,10 @@
     userBoard = initialBoard.map(row => [...row]);
     errorCount = 0; errorCounterEl.textContent = `Erros: ${errorCount}/3`;
     selectedCell = null;
+    notesBoard = Array(9).fill(0).map(() => Array(9).fill(0).map(() => new Set()));
+    moveHistory = [];
     renderBoard();
+    saveGameState(); // Salva após o reset
   }
 
   function isBlockCompleted(blockR, blockC) {
@@ -1581,6 +1636,7 @@
           streakCount = 0;
           localStorage.setItem('sudoku_streak', 0);
           addHistoryRow('Derrota');
+          localStorage.removeItem('sudoku_active_game'); // Limpa o save após derrota
           setTimeout(resetGame, 1500);
           return;
         }
@@ -1588,6 +1644,7 @@
     }
 
     renderBoard();
+    saveGameState(); // Salva o estado após cada jogada
     checkWin();
   }
 
@@ -1597,6 +1654,7 @@
     userBoard[last.r][last.c] = last.val;
     notesBoard[last.r][last.c] = last.notes;
     renderBoard();
+    saveGameState(); // Salva o estado após desfazer
   }
 
   function giveHint() {
@@ -1619,6 +1677,7 @@
 
       if (!infiniteHintsEnabled) { hintsLeft--; hintsUsedInGame++; }
       updateHintDisplay();
+      saveGameState(); // Salva após usar dica
     }
   }
 
@@ -1629,6 +1688,8 @@
       }
     }
     clearInterval(timerInterval);
+    localStorage.removeItem('sudoku_active_game'); // Remove o save ao vencer para iniciar um novo limpo depois
+
     document.getElementById('win-time').textContent = formatTime(timerSeconds);
     document.getElementById('win-errors').textContent = errorCount;
     document.getElementById('unlock-message').style.display = 'none';
@@ -1840,11 +1901,21 @@
 
   function closeSettingsModal() { document.getElementById('settings-modal').classList.remove('active'); }
   function closeEasterEggModal() { document.getElementById('easter-egg-modal').classList.remove('active'); }
-  function closeWinModal() { document.getElementById('win-modal').classList.remove('active'); generatePuzzle(); }
+  function closeWinModal() { 
+    document.getElementById('win-modal').classList.remove('active'); 
+    localStorage.removeItem('sudoku_active_game');
+    generatePuzzle(); 
+  }
 
   document.getElementById('btn-mode-toggle').addEventListener('click', toggleNoteMode);
-  document.getElementById('btn-new').addEventListener('click', () => generatePuzzle(false));
-  document.getElementById('btn-daily').addEventListener('click', () => generatePuzzle(true));
+  document.getElementById('btn-new').addEventListener('click', () => {
+    localStorage.removeItem('sudoku_active_game');
+    generatePuzzle(false);
+  });
+  document.getElementById('btn-daily').addEventListener('click', () => {
+    localStorage.removeItem('sudoku_active_game');
+    generatePuzzle(true);
+  });
   document.getElementById('btn-reset').addEventListener('click', resetGame);
   document.getElementById('btn-hint').addEventListener('click', giveHint);
   document.getElementById('btn-pause').addEventListener('click', () => { 
@@ -1857,7 +1928,11 @@
   loadBestTimes();
   updatePointsDisplay();
   applyActiveSkinToBoard();
-  generatePuzzle();
+
+  // Tenta carregar o jogo salvo ao iniciar. Se não houver, gera um novo.
+  if (!loadGameState()) {
+    generatePuzzle();
+  }
 </script>
 </body>
 </html>
