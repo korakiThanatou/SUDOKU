@@ -1418,12 +1418,14 @@
   function startTimer() {
     clearInterval(timerInterval);
     isPaused = false;
+    timerSeconds = 0; // Reinicia o cronômetro do zero ao iniciar nova tabela
+    timerDisplay.textContent = formatTime(timerSeconds);
     document.getElementById('btn-pause').textContent = 'Pausar';
     timerInterval = setInterval(() => { 
       if (!isPaused) { 
         timerSeconds++; 
         timerDisplay.textContent = formatTime(timerSeconds);
-        saveGameState(); // Salva periodicamente com o tempo atualizado
+        saveGameState(); 
       } 
     }, 1000);
   }
@@ -1454,13 +1456,12 @@
     return board;
   }
 
-  // --- FUNÇÕES DE PERSISTÊNCIA DO JOGO ---
   function saveGameState() {
     const gameState = {
       currentSolution,
       initialBoard,
       userBoard,
-      notesBoard: notesBoard.map(row => row.map(set => Array.from(set))), // Converte Sets para Arrays para salvar em JSON
+      notesBoard: notesBoard.map(row => row.map(set => Array.from(set))),
       moveHistory: moveHistory.map(m => ({ r: m.r, c: m.c, val: m.val, notes: Array.from(m.notes) })),
       errorCount,
       hintsLeft,
@@ -1480,7 +1481,7 @@
       currentSolution = data.currentSolution;
       initialBoard = data.initialBoard;
       userBoard = data.userBoard;
-      notesBoard = data.notesBoard.map(row => row.map(arr => new Set(arr))); // Restaura os Arrays para Sets
+      notesBoard = data.notesBoard.map(row => row.map(arr => new Set(arr)));
       moveHistory = data.moveHistory.map(m => ({ r: m.r, c: m.c, val: m.val, notes: new Set(m.notes) }));
       errorCount = data.errorCount;
       hintsLeft = data.hintsLeft;
@@ -1493,7 +1494,19 @@
       updateHintDisplay();
       timerDisplay.textContent = formatTime(timerSeconds);
       statusEl.textContent = isDailyGame ? '📅 Desafio Diário Ativo!' : '';
-      startTimer();
+      
+      // Continua o cronômetro do ponto salvo sem reiniciar do zero
+      clearInterval(timerInterval);
+      isPaused = false;
+      document.getElementById('btn-pause').textContent = 'Pausar';
+      timerInterval = setInterval(() => { 
+        if (!isPaused) { 
+          timerSeconds++; 
+          timerDisplay.textContent = formatTime(timerSeconds);
+          saveGameState(); 
+        } 
+      }, 1000);
+
       renderBoard();
       return true;
     } catch(e) {
@@ -1501,7 +1514,6 @@
       return false;
     }
   }
-  // ---------------------------------------
 
   function generatePuzzle(isDaily = false) {
     isDailyGame = isDaily;
@@ -1527,6 +1539,9 @@
     moveHistory = []; selectedCell = null; hintsLeft = 3; hintsUsedInGame = 0;
     updateHintDisplay();
     statusEl.textContent = isDaily ? '📅 Desafio Diário Ativo!' : '';
+    
+    // Limpa o estado salvo e reinicia o cronômetro do zero ao gerar uma nova tabela
+    localStorage.removeItem('sudoku_active_game');
     startTimer();
     resetGame();
   }
@@ -1539,8 +1554,11 @@
     selectedCell = null;
     notesBoard = Array(9).fill(0).map(() => Array(9).fill(0).map(() => new Set()));
     moveHistory = [];
+    
+    // Ao resetar o jogo manualmente pelo botão Reset, o cronômetro também reinicia do zero e limpa o salvamento
+    localStorage.removeItem('sudoku_active_game');
+    startTimer();
     renderBoard();
-    saveGameState(); // Salva após o reset
   }
 
   function isBlockCompleted(blockR, blockC) {
@@ -1644,7 +1662,7 @@
     }
 
     renderBoard();
-    saveGameState(); // Salva o estado após cada jogada
+    saveGameState();
     checkWin();
   }
 
@@ -1654,7 +1672,7 @@
     userBoard[last.r][last.c] = last.val;
     notesBoard[last.r][last.c] = last.notes;
     renderBoard();
-    saveGameState(); // Salva o estado após desfazer
+    saveGameState();
   }
 
   function giveHint() {
@@ -1677,7 +1695,7 @@
 
       if (!infiniteHintsEnabled) { hintsLeft--; hintsUsedInGame++; }
       updateHintDisplay();
-      saveGameState(); // Salva após usar dica
+      saveGameState();
     }
   }
 
@@ -1929,7 +1947,6 @@
   updatePointsDisplay();
   applyActiveSkinToBoard();
 
-  // Tenta carregar o jogo salvo ao iniciar. Se não houver, gera um novo.
   if (!loadGameState()) {
     generatePuzzle();
   }
