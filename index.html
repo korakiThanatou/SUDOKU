@@ -132,6 +132,37 @@
       --highlight-match-bg: #d1fae5;
     }
     .sudoku-board.skin-emerald .cell { background: var(--card-bg); border-color: var(--light-border); color: var(--text-color); }
+    /* ========================================== MUSGO SOFT — VERDE ACINZENTADO CONFORTÁVEL ========================================== */ 
+    body.skin-musgo, .skin-musgo { 
+      --bg-color: #26332b; 
+      --card-bg: #34463a; 
+      --text-color: #c8d5c5; 
+      --border-color: #617563; 
+      --thick-border-color: #899c88; 
+      --light-border: #4c5f50; 
+      --primary-color: #718b72; 
+      --highlight-line-bg: #2d3c32; 
+      --selected-bg: #596f5b; 
+      --highlight-match-bg: #405443; 
+      --shadow: 0 8px 20px -6px rgba(20, 30, 23, 0.35);
+    } 
+    body.skin-musgo.light-mode, .skin-musgo.light-mode, .light-mode .skin-musgo { 
+      --bg-color: #e9eee8; 
+      --card-bg: #f4f7f2; 
+      --text-color: #35443a; 
+      --border-color: #91a391; 
+      --thick-border-color: #657866; 
+      --light-border: #d1dacf; 
+      --primary-color: #667d68; 
+      --highlight-line-bg: #edf2eb; 
+      --selected-bg: #c8d6c7; 
+      --highlight-match-bg: #dfe8dd; 
+      --shadow: 0 8px 20px -6px rgba(60, 75, 63, 0.12); 
+    } 
+    .sudoku-board.skin-musgo .cell { 
+      background: var(--card-bg);
+      border-color: var(--light-border);
+      color: var(--text-color); }
 
     body.skin-sunset, .skin-sunset {
       --bg-color: #431407;
@@ -635,6 +666,16 @@
       </div>
     </div>
 
+    <div class="skin-market-card"> 
+      <div> 
+        <strong>🌿 Musgo Soft</strong><br> <small style="color: var(--note-color);"> Verde-musgo suave e confortável aos olhos (75 pts) </small> 
+      </div> 
+      <div style="display: flex; gap: 6px;"> 
+        <button class="action-btn" style="background-color: #64748b;" onclick="previewSkin('musgo')"> Preview </button> 
+        <button class="action-btn" id="skin-btn-musgo" onclick="buyOrSelectSkin('musgo', 75)"> Comprar </button> 
+      </div> 
+    </div>
+
     <div class="skin-market-card">
       <div>
         <strong>Neon Cyber</strong><br><small style="color: var(--note-color);">Estilo futurista brilhante (50 pts)</small>
@@ -1048,8 +1089,20 @@
 
   function updateMarketUI() {
     updatePointsDisplay();
-    const skins = ['classic', 'emerald', 'neon', 'retro', 'sunset', 'roxinho', 'lilas', 'coquette', 'ultrakill', 'golden'];
-    const prices = { classic: 0, emerald: 0, neon: 50, retro: 100, sunset: 200, roxinho: 75, lilas: 0, coquette: 120, ultrakill: 250, golden: 0 };
+    const skins = [
+  'classic',
+  'emerald',
+  'musgo',
+  'neon',
+  'retro',
+  'sunset',
+  'roxinho',
+  'lilas',
+  'coquette',
+  'ultrakill',
+  'golden'
+];
+    const prices = { classic: 0, emerald: 0, musgo: 0, neon: 50, retro: 100, sunset: 200, roxinho: 75, lilas: 0, coquette: 120, ultrakill: 250, golden: 0 };
 
     const lilasCard = document.getElementById('card-skin-lilas');
     if (unlockedSkins.includes('lilas')) {
@@ -1137,7 +1190,7 @@
   }
 
   function applyActiveSkinToBoard() {
-    document.body.classList.remove('skin-neon', 'skin-retro', 'skin-emerald', 'skin-sunset', 'skin-golden', 'skin-roxinho', 'skin-lilas', 'skin-coquette', 'skin-ultrakill');
+    document.body.classList.remove('skin-neon', 'skin-retro', 'skin-emerald', 'skin-musgo','skin-sunset', 'skin-golden', 'skin-roxinho', 'skin-lilas', 'skin-coquette', 'skin-ultrakill');
     boardEl.className = 'sudoku-board';
     if (activeSkin !== 'classic') {
       document.body.classList.add(`skin-${activeSkin}`);
