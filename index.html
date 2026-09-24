@@ -668,11 +668,11 @@
 
     <div class="skin-market-card"> 
       <div> 
-        <strong>🌿 Musgo Soft</strong><br> <small style="color: var(--note-color);"> Verde-musgo suave e confortável aos olhos (75 pts) </small> 
+        <strong>🌿 Musgo Soft</strong><br> <small style="color: var(--note-color);"> Verde-musgo suave e confortável aos olhos (Grátis) </small> 
       </div> 
       <div style="display: flex; gap: 6px;"> 
         <button class="action-btn" style="background-color: #64748b;" onclick="previewSkin('musgo')"> Preview </button> 
-        <button class="action-btn" id="skin-btn-musgo" onclick="buyOrSelectSkin('musgo', 75)"> Comprar </button> 
+        <button class="action-btn" id="skin-btn-musgo" onclick="buyOrSelectSkin('musgo', 0)"> Usar </button> 
       </div> 
     </div>
 
@@ -1022,7 +1022,7 @@
   let streakCount = parseInt(localStorage.getItem('sudoku_streak') || '0');
 
   let playerPoints = parseInt(localStorage.getItem('sudoku_points') || '0');
-  let unlockedSkins = JSON.parse(localStorage.getItem('sudoku_unlocked_skins') || '["classic", "emerald"]');
+  let unlockedSkins = JSON.parse(localStorage.getItem('sudoku_unlocked_skins') || '["classic", "emerald", "musgo"]');
   let activeSkin = localStorage.getItem('sudoku_active_skin') || 'classic';
 
   let unlockedAchievements = JSON.parse(localStorage.getItem('sudoku_achievements') || '[]');
@@ -1089,20 +1089,21 @@
 
   function updateMarketUI() {
     updatePointsDisplay();
-    const skins = [
-  'classic',
-  'emerald',
-  'musgo',
-  'neon',
-  'retro',
-  'sunset',
-  'roxinho',
-  'lilas',
-  'coquette',
-  'ultrakill',
-  'golden'
-];
-    const prices = { classic: 0, emerald: 0, musgo: 0, neon: 50, retro: 100, sunset: 200, roxinho: 75, lilas: 0, coquette: 120, ultrakill: 250, golden: 0 };
+    const skins = ['classic', 'emerald', 'musgo', 'neon', 'retro', 'sunset', 'roxinho', 'lilas', 'coquette', 'ultrakill', 'golden'];
+
+const prices = {
+  classic: 0,
+  emerald: 0,
+  musgo: 0,
+  neon: 50,
+  retro: 100,
+  sunset: 200,
+  roxinho: 75,
+  lilas: 0,
+  coquette: 120,
+  ultrakill: 250,
+  golden: 0
+};
 
     const lilasCard = document.getElementById('card-skin-lilas');
     if (unlockedSkins.includes('lilas')) {
