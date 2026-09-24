@@ -132,6 +132,7 @@
       --highlight-match-bg: #d1fae5;
     }
     .sudoku-board.skin-emerald .cell { background: var(--card-bg); border-color: var(--light-border); color: var(--text-color); }
+
     /* ========================================== MUSGO SOFT — VERDE ACINZENTADO CONFORTÁVEL ========================================== */ 
     body.skin-musgo, .skin-musgo { 
       --bg-color: #26332b; 
@@ -162,7 +163,8 @@
     .sudoku-board.skin-musgo .cell { 
       background: var(--card-bg);
       border-color: var(--light-border);
-      color: var(--text-color); }
+      color: var(--text-color); 
+    }
 
     body.skin-sunset, .skin-sunset {
       --bg-color: #431407;
@@ -772,8 +774,8 @@
         <div class="row">
           <label>Dificuldade:
             <select id="difficulty">
-              <option value="easy">Fácil</option>
-              <option value="medium" selected>Médio</option>
+              <option value="easy" selected>Fácil</option>
+              <option value="medium">Médio</option>
               <option value="hard">Difícil</option>
               <option value="master" id="opt-master" disabled>🔒 Mestre (Bloqueado)</option>
               <option value="legendary" id="opt-legendary" disabled>🔒 Lendário (Bloqueado)</option>
@@ -783,7 +785,6 @@
             <button class="focus-btn" id="btn-toggle-focus">🎯 Foco</button>
             <button class="action-btn" id="btn-daily">📅 Diário</button>
             <button class="action-btn" id="btn-new">Novo</button>
-            <button class="action-btn" id="btn-reset">Reset</button>
           </div>
         </div>
 
@@ -1091,19 +1092,19 @@
     updatePointsDisplay();
     const skins = ['classic', 'emerald', 'musgo', 'neon', 'retro', 'sunset', 'roxinho', 'lilas', 'coquette', 'ultrakill', 'golden'];
 
-const prices = {
-  classic: 0,
-  emerald: 0,
-  musgo: 0,
-  neon: 50,
-  retro: 100,
-  sunset: 200,
-  roxinho: 75,
-  lilas: 0,
-  coquette: 120,
-  ultrakill: 250,
-  golden: 0
-};
+    const prices = {
+      classic: 0,
+      emerald: 0,
+      musgo: 0,
+      neon: 50,
+      retro: 100,
+      sunset: 200,
+      roxinho: 75,
+      lilas: 0,
+      coquette: 120,
+      ultrakill: 250,
+      golden: 0
+    };
 
     const lilasCard = document.getElementById('card-skin-lilas');
     if (unlockedSkins.includes('lilas')) {
@@ -1191,7 +1192,7 @@ const prices = {
   }
 
   function applyActiveSkinToBoard() {
-    document.body.classList.remove('skin-neon', 'skin-retro', 'skin-emerald', 'skin-musgo','skin-sunset', 'skin-golden', 'skin-roxinho', 'skin-lilas', 'skin-coquette', 'skin-ultrakill');
+    document.body.classList.remove('skin-neon', 'skin-retro', 'skin-emerald', 'skin-musgo', 'skin-sunset', 'skin-golden', 'skin-roxinho', 'skin-lilas', 'skin-coquette', 'skin-ultrakill');
     boardEl.className = 'sudoku-board';
     if (activeSkin !== 'classic') {
       document.body.classList.add(`skin-${activeSkin}`);
@@ -1472,7 +1473,7 @@ const prices = {
   function startTimer() {
     clearInterval(timerInterval);
     isPaused = false;
-    timerSeconds = 0; // Reinicia o cronômetro do zero ao iniciar nova tabela
+    timerSeconds = 0;
     timerDisplay.textContent = formatTime(timerSeconds);
     document.getElementById('btn-pause').textContent = 'Pausar';
     timerInterval = setInterval(() => { 
@@ -1542,14 +1543,16 @@ const prices = {
       hintsUsedInGame = data.hintsUsedInGame;
       timerSeconds = data.timerSeconds;
       isDailyGame = data.isDailyGame;
-      difficultyEl.value = data.difficulty;
+      
+      if (data.difficulty) {
+        difficultyEl.value = data.difficulty;
+      }
 
       errorCounterEl.textContent = `Erros: ${errorCount}/3`;
       updateHintDisplay();
       timerDisplay.textContent = formatTime(timerSeconds);
       statusEl.textContent = isDailyGame ? '📅 Desafio Diário Ativo!' : '';
       
-      // Continua o cronômetro do ponto salvo sem reiniciar do zero
       clearInterval(timerInterval);
       isPaused = false;
       document.getElementById('btn-pause').textContent = 'Pausar';
@@ -1594,26 +1597,19 @@ const prices = {
     updateHintDisplay();
     statusEl.textContent = isDaily ? '📅 Desafio Diário Ativo!' : '';
     
-    // Limpa o estado salvo e reinicia o cronômetro do zero ao gerar uma nova tabela
     localStorage.removeItem('sudoku_active_game');
     startTimer();
-    resetGame();
-  }
-
-  function updateHintDisplay() { hintCountEl.textContent = infiniteHintsEnabled ? '∞' : hintsLeft; }
-
-  function resetGame() {
+    
     userBoard = initialBoard.map(row => [...row]);
-    errorCount = 0; errorCounterEl.textContent = `Erros: ${errorCount}/3`;
+    errorCount = 0; 
+    errorCounterEl.textContent = `Erros: ${errorCount}/3`;
     selectedCell = null;
     notesBoard = Array(9).fill(0).map(() => Array(9).fill(0).map(() => new Set()));
     moveHistory = [];
-    
-    // Ao resetar o jogo manualmente pelo botão Reset, o cronômetro também reinicia do zero e limpa o salvamento
-    localStorage.removeItem('sudoku_active_game');
-    startTimer();
     renderBoard();
   }
+
+  function updateHintDisplay() { hintCountEl.textContent = infiniteHintsEnabled ? '∞' : hintsLeft; }
 
   function isBlockCompleted(blockR, blockC) {
     for (let r = blockR * 3; r < blockR * 3 + 3; r++) {
@@ -1708,8 +1704,8 @@ const prices = {
           streakCount = 0;
           localStorage.setItem('sudoku_streak', 0);
           addHistoryRow('Derrota');
-          localStorage.removeItem('sudoku_active_game'); // Limpa o save após derrota
-          setTimeout(resetGame, 1500);
+          localStorage.removeItem('sudoku_active_game');
+          setTimeout(() => generatePuzzle(isDailyGame), 1500);
           return;
         }
       }
@@ -1760,7 +1756,7 @@ const prices = {
       }
     }
     clearInterval(timerInterval);
-    localStorage.removeItem('sudoku_active_game'); // Remove o save ao vencer para iniciar um novo limpo depois
+    localStorage.removeItem('sudoku_active_game');
 
     document.getElementById('win-time').textContent = formatTime(timerSeconds);
     document.getElementById('win-errors').textContent = errorCount;
@@ -1988,7 +1984,6 @@ const prices = {
     localStorage.removeItem('sudoku_active_game');
     generatePuzzle(true);
   });
-  document.getElementById('btn-reset').addEventListener('click', resetGame);
   document.getElementById('btn-hint').addEventListener('click', giveHint);
   document.getElementById('btn-pause').addEventListener('click', () => { 
     isPaused = !isPaused; 
