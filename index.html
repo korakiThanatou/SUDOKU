@@ -839,7 +839,7 @@
           <div class="badge-card" id="badge-daily" onclick="showAchievementInfo('📅 Foco Diário', 'Complete com sucesso um Desafio Diário.')">📅 Foco Diário</div>
           
           <div class="badge-card special-unlock" id="badge-unlock-master" style="grid-column: span 2;" onclick="showAchievementInfo('🔥 Desbravador', 'Vença uma partida na dificuldade Difícil para desbloquear o nível MESTRE.')">🔒 Desbravador (Mestre)</div>
-          <div class="badge-card special-unlock" id="badge-unlock-legendary" style="grid-column: span 2;" onclick="showAchievementInfo('🐉 Deus do Sudoku', 'Vença uma partida na dificuldade Mestre com ZERO erros para desbloquear o modo LENDÁRIO.')">🔒 Deus do Sudoku (Lendário)</div>
+          <div class="badge-card special-unlock" id="badge-unlock-legendary" style="grid-column: span 2;" onclick="showAchievementInfo('🐉 Deus do Sudoku', 'Vença uma partida na dificuldade Mestre para desbloquear o modo LENDÁRIO.')">🔒 Deus do Sudoku (Lendário)</div>
         </div>
       </div>
     </div>
@@ -1040,7 +1040,7 @@
     'badge-streak': { name: '🔥 Streak (3 jogos)', desc: 'Vença 3 partidas seguidas.' },
     'badge-daily': { name: '📅 Foco Diário', desc: 'Complete com sucesso um Desafio Diário.' },
     'badge-unlock-master': { name: '🔒 Desbravador (Mestre)', desc: 'Vença no Difícil para desbloquear o Mestre.' },
-    'badge-unlock-legendary': { name: '🔒 Deus do Sudoku (Lendário)', desc: 'Vença no Mestre sem erros para desbloquear o Lendário.' }
+    'badge-unlock-legendary': { name: '🔒 Deus do Sudoku (Lendário)', desc: 'Vença no Mestre para desbloquear o Lendário.' }
   };
 
   const allAchievementIds = Object.keys(achievementMeta);
@@ -1699,7 +1699,10 @@
         errorCounterEl.textContent = `Erros: ${errorCount}/3`;
         
         const isErrorCounterActive = errorCounterEl.style.display !== 'none';
-        if (isErrorCounterActive && errorCount >= 3) {
+        const currentDiff = difficultyEl.value;
+        const isHardcoreMode = (currentDiff === 'master' || currentDiff === 'legendary');
+
+        if (isErrorCounterActive && errorCount >= 3 && !isHardcoreMode) {
           statusEl.textContent = '3 erros! Derrota...';
           streakCount = 0;
           localStorage.setItem('sudoku_streak', 0);
@@ -1786,7 +1789,7 @@
     if (diffVal === 'hard' && !isDailyGame) {
       awardAchievement('badge-unlock-master', '✨ NOVA DIFICULDADE DESBLOQUEADA: MESTRE 🔥');
     }
-    if (diffVal === 'master' && errorCount === 0 && !isDailyGame) {
+    if (diffVal === 'master' && !isDailyGame) {
       awardAchievement('badge-unlock-legendary', '✨ NOVA DIFICULDADE DESBLOQUEADA: LENDÁRIO 🐉');
     }
 
