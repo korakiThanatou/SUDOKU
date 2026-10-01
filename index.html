@@ -2,9 +2,44 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Outfit:wght@500;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js">
+  function switchSidebarTab(tabName) {
+    const isRecords = (tabName === 'records');
+    document.getElementById('tab-btn-records').classList.toggle('active', isRecords);
+    document.getElementById('tab-btn-badges').classList.toggle('active', !isRecords);
+    
+    const indicator = document.getElementById('slider-indicator');
+    const recordsPane = document.getElementById('tab-content-records');
+    const badgesPane = document.getElementById('tab-content-badges');
+    
+    if (isRecords) {
+      indicator.style.transform = 'translateX(0%)';
+      badgesPane.style.display = 'none';
+      recordsPane.style.display = 'block';
+      recordsPane.style.animation = 'fadeInPane 0.25s ease';
+    } else {
+      indicator.style.transform = 'translateX(100%)';
+      recordsPane.style.display = 'none';
+      badgesPane.style.display = 'block';
+      badgesPane.style.animation = 'fadeInPane 0.25s ease';
+    }
+  }
+
+</script>
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sudoku Pro - Versão Completa</title>
   <style>
+
+    /* Forçar canvas do confetti para cima de todos os modais e popups */
+    canvas.confetti-canvas {
+      z-index: 12000 !important;
+      pointer-events: none !important;
+    }
+
     /* ==========================================
        SISTEMA DE TEMAS E SKINS UNIFICADAS (LIGHT / DARK)
        ================================---------- */
@@ -28,6 +63,34 @@
       --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
     }
 
+
+
+    /* Forçar canvas do confetti para cima de todos os modais e popups */
+    canvas.confetti-canvas {
+      z-index: 12000 !important;
+      pointer-events: none !important;
+    }
+
+    /* ==========================================
+       SCROLLBAR GLOBAL ESTILIZADA (MATCH COM O TEMA)
+       ========================================== */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.05);
+      border-radius: 8px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--border-color);
+      border-radius: 8px;
+      transition: background 0.2s;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--primary-color);
+    }
+
     body.light-mode {
       --bg-color: #f1f5f9;
       --card-bg: #ffffff;
@@ -48,191 +111,199 @@
       --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
     }
 
-    /* SKINS INTERATIVAS COM SUPORTE INTEGRAL LIGHT/DARK */
+
+    /* Forçar canvas do confetti para cima de todos os modais e popups */
+    canvas.confetti-canvas {
+      z-index: 12000 !important;
+      pointer-events: none !important;
+    }
+
+    /* ==========================================
+       TEMAS OTIMIZADOS (REGRA 60-30-10 & ACESSIBILIDADE WCAG)
+       60% Dominante (Fundo/Cards) | 30% Secundária (Bordas/Linhas) | 10% Destaque (Seleção/Ações)
+       ========================================== */
+
+    /* 1. NEON CYBER — Ciberpunk equilibrado com alto contraste */
     body.skin-neon, .skin-neon {
-      --bg-color: #030712;
-      --card-bg: #0b0f19;
-      --text-color: #22d3ee;
-      --border-color: #0891b2;
-      --thick-border-color: #22d3ee;
-      --light-border: #164e63;
-      --primary-color: #06b6d4;
-      --highlight-line-bg: #0f172a;
-      --selected-bg: #0e7490;
-      --highlight-match-bg: #164e63;
-      --shadow: 0 0 25px rgba(6, 182, 212, 0.25);
+      --bg-color: #080d1a;            /* 60% Dominante Escuro */
+      --card-bg: #0f172a;          /* Cards & Células */
+      --text-color: #38bdf8;         /* Texto Cyan */
+      --border-color: #0284c7;
+      --thick-border-color: #38bdf8;
+      --light-border: #1e293b;        /* 30% Estrutura Suave */
+      --primary-color: #0284c7;
+      --highlight-line-bg: #0f2b48;
+      --selected-bg: #0284c7;        /* 10% Destaque */
+      --highlight-match-bg: #1e3a5f;
+      --shadow: 0 0 25px rgba(56, 189, 248, 0.2);
     }
     body.skin-neon.light-mode, .skin-neon.light-mode, .light-mode .skin-neon {
-      --bg-color: #ecfeff;
+      --bg-color: #f0f9ff;
       --card-bg: #ffffff;
-      --text-color: #0e7490;
-      --border-color: #06b6d4;
-      --thick-border-color: #0891b2;
-      --light-border: #cffafe;
-      --primary-color: #0891b2;
-      --highlight-line-bg: #f0fdfa;
-      --selected-bg: #a5f3fc;
-      --highlight-match-bg: #cffafe;
-      --shadow: 0 0 20px rgba(6, 182, 212, 0.15);
+      --text-color: #0369a1;
+      --border-color: #0284c7;
+      --thick-border-color: #0369a1;
+      --light-border: #e0f2fe;
+      --primary-color: #0284c7;
+      --highlight-line-bg: #e0f2fe;
+      --selected-bg: #bae6fd;
+      --highlight-match-bg: #e0f2fe;
+      --shadow: 0 10px 20px rgba(3, 105, 161, 0.1);
     }
-    .sudoku-board.skin-neon .cell { background: var(--card-bg); border-color: var(--light-border); color: var(--text-color); }
-    .sudoku-board.skin-neon .cell.selected { background: var(--selected-bg) !important; color: #fff; }
 
+    /* 2. RETRÔ VINTAGE — Papel creme com tom terracotta elegante */
     body.skin-retro, .skin-retro {
-      --bg-color: #fdf6e2;
-      --card-bg: #fffbeb;
-      --text-color: #78350f;
+      --bg-color: #2b2118;
+      --card-bg: #3a2e23;
+      --text-color: #fef3c7;
       --border-color: #d97706;
-      --thick-border-color: #b45309;
-      --light-border: #fcd34d;
-      --primary-color: #b45309;
-      --highlight-line-bg: #fef3c7;
-      --selected-bg: #f59e0b;
-      --highlight-match-bg: #fde68a;
-      --shadow: 0 10px 25px -5px rgba(180, 83, 9, 0.15);
+      --thick-border-color: #f59e0b;
+      --light-border: #4a3b2c;
+      --primary-color: #d97706;
+      --highlight-line-bg: #4a3828;
+      --selected-bg: #b45309;
+      --highlight-match-bg: #5a4532;
+      --shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
     }
     body.skin-retro.light-mode, .skin-retro.light-mode, .light-mode .skin-retro {
-      --bg-color: #fffbeb;
+      --bg-color: #fbf7ee;
       --card-bg: #ffffff;
       --text-color: #78350f;
-      --border-color: #f59e0b;
-      --thick-border-color: #d97706;
-      --light-border: #fef3c7;
-      --primary-color: #d97706;
-      --highlight-line-bg: #fffdf4;
+      --border-color: #d97706;
+      --thick-border-color: #92400e;
+      --light-border: #f3e8d3;
+      --primary-color: #b45309;
+      --highlight-line-bg: #fef3c7;
       --selected-bg: #fde68a;
-      --highlight-match-bg: #fef3c7;
+      --highlight-match-bg: #fef9c3;
+      --shadow: 0 8px 20px rgba(120, 53, 15, 0.08);
     }
-    .sudoku-board.skin-retro { border-color: var(--thick-border-color) !important; }
-    .sudoku-board.skin-retro .cell { background: var(--card-bg); border-color: var(--light-border); color: var(--text-color); }
 
+    /* 3. ESMERALDA MINIMAL — Verde profundo relaxante */
     body.skin-emerald, .skin-emerald {
-      --bg-color: #022c22;
-      --card-bg: #064e3b;
-      --text-color: #34d399;
-      --border-color: #059669;
+      --bg-color: #062319;
+      --card-bg: #0b3829;
+      --text-color: #6ee7b7;
+      --border-color: #10b981;
       --thick-border-color: #34d399;
-      --light-border: #065f46;
+      --light-border: #134e3a;
       --primary-color: #10b981;
-      --highlight-line-bg: #022c22;
-      --selected-bg: #047857;
-      --highlight-match-bg: #065f46;
-      --shadow: 0 0 25px rgba(5, 150, 105, 0.25);
+      --highlight-line-bg: #0d4734;
+      --selected-bg: #059669;
+      --highlight-match-bg: #135e45;
+      --shadow: 0 0 25px rgba(16, 185, 129, 0.2);
     }
     body.skin-emerald.light-mode, .skin-emerald.light-mode, .light-mode .skin-emerald {
-      --bg-color: #ecfdf5;
+      --bg-color: #f0fdf4;
       --card-bg: #ffffff;
       --text-color: #065f46;
       --border-color: #10b981;
-      --thick-border-color: #059669;
-      --light-border: #a7f3d0;
+      --thick-border-color: #047857;
+      --light-border: #dcfce7;
       --primary-color: #059669;
-      --highlight-line-bg: #f0fdf4;
+      --highlight-line-bg: #dcfce7;
       --selected-bg: #a7f3d0;
-      --highlight-match-bg: #d1fae5;
+      --highlight-match-bg: #e8f5e9;
+      --shadow: 0 8px 20px rgba(4, 120, 87, 0.08);
     }
-    .sudoku-board.skin-emerald .cell { background: var(--card-bg); border-color: var(--light-border); color: var(--text-color); }
 
-    /* ========================================== MUSGO SOFT — VERDE ACINZENTADO CONFORTÁVEL ========================================== */ 
+    /* 4. MUSGO SOFT — Verde acinzentado orgânico e confortável aos olhos */
     body.skin-musgo, .skin-musgo { 
-      --bg-color: #26332b; 
-      --card-bg: #34463a; 
-      --text-color: #c8d5c5; 
-      --border-color: #617563; 
-      --thick-border-color: #899c88; 
-      --light-border: #4c5f50; 
-      --primary-color: #718b72; 
-      --highlight-line-bg: #2d3c32; 
-      --selected-bg: #596f5b; 
-      --highlight-match-bg: #405443; 
-      --shadow: 0 8px 20px -6px rgba(20, 30, 23, 0.35);
+      --bg-color: #1c2620; 
+      --card-bg: #28362d; 
+      --text-color: #d1fae5; 
+      --border-color: #52796f; 
+      --thick-border-color: #84a98c; 
+      --light-border: #35473c; 
+      --primary-color: #52796f; 
+      --highlight-line-bg: #324338; 
+      --selected-bg: #3a5a40; 
+      --highlight-match-bg: #415a4a; 
+      --shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
     } 
     body.skin-musgo.light-mode, .skin-musgo.light-mode, .light-mode .skin-musgo { 
-      --bg-color: #e9eee8; 
-      --card-bg: #f4f7f2; 
-      --text-color: #35443a; 
-      --border-color: #91a391; 
-      --thick-border-color: #657866; 
-      --light-border: #d1dacf; 
-      --primary-color: #667d68; 
-      --highlight-line-bg: #edf2eb; 
-      --selected-bg: #c8d6c7; 
-      --highlight-match-bg: #dfe8dd; 
-      --shadow: 0 8px 20px -6px rgba(60, 75, 63, 0.12); 
-    } 
-    .sudoku-board.skin-musgo .cell { 
-      background: var(--card-bg);
-      border-color: var(--light-border);
-      color: var(--text-color); 
+      --bg-color: #f2f5f3; 
+      --card-bg: #ffffff; 
+      --text-color: #2d3a31; 
+      --border-color: #84a98c; 
+      --thick-border-color: #52796f; 
+      --light-border: #e2e8e4; 
+      --primary-color: #52796f; 
+      --highlight-line-bg: #e8eee9; 
+      --selected-bg: #cad2c5; 
+      --highlight-match-bg: #e2e8e4; 
+      --shadow: 0 8px 20px rgba(45, 58, 49, 0.08); 
     }
 
+    /* 5. PÔR DO SOL VIP — Laranja aconchegante e aquecido */
     body.skin-sunset, .skin-sunset {
-      --bg-color: #431407;
-      --card-bg: #7c2d12;
-      --text-color: #fb923c;
-      --border-color: #ea580c;
+      --bg-color: #2a1208;
+      --card-bg: #3d1b0c;
+      --text-color: #fdba74;
+      --border-color: #f97316;
       --thick-border-color: #fb923c;
-      --light-border: #9a3412;
-      --primary-color: #f97316;
-      --highlight-line-bg: #431407;
+      --light-border: #542713;
+      --primary-color: #ea580c;
+      --highlight-line-bg: #522310;
       --selected-bg: #c2410c;
-      --highlight-match-bg: #9a3412;
-      --shadow: 0 0 25px rgba(234, 88, 12, 0.25);
+      --highlight-match-bg: #682d14;
+      --shadow: 0 0 25px rgba(249, 115, 22, 0.2);
     }
     body.skin-sunset.light-mode, .skin-sunset.light-mode, .light-mode .skin-sunset {
       --bg-color: #fff7ed;
       --card-bg: #ffffff;
       --text-color: #9a3412;
       --border-color: #f97316;
-      --thick-border-color: #ea580c;
-      --light-border: #fed7aa;
+      --thick-border-color: #c2410c;
+      --light-border: #ffedd5;
       --primary-color: #ea580c;
       --highlight-line-bg: #ffedd5;
       --selected-bg: #fed7aa;
-      --highlight-match-bg: #ffedd5;
+      --highlight-match-bg: #fff7ed;
+      --shadow: 0 8px 20px rgba(194, 65, 12, 0.08);
     }
-    .sudoku-board.skin-sunset .cell { background: var(--card-bg); border-color: var(--light-border); color: var(--text-color); }
 
+    /* 6. DOURADO VIP — Luxo com amarelado brilhante ajustado */
     body.skin-golden, .skin-golden {
-      --bg-color: #1a1400;
-      --card-bg: #2d2302;
-      --text-color: #fde047;
-      --border-color: var(--hint-color);
+      --bg-color: #1f1a08;
+      --card-bg: #2e260d;
+      --text-color: #fef08a;
+      --border-color: #eab308;
       --thick-border-color: #fde047;
-      --light-border: #713f12;
+      --light-border: #423714;
       --primary-color: #ca8a04;
-      --highlight-line-bg: #1a1400;
-      --selected-bg: #854d0e;
-      --highlight-match-bg: #422006;
-      --shadow: 0 0 30px rgba(234, 179, 8, 0.3);
+      --highlight-line-bg: #403410;
+      --selected-bg: #a16207;
+      --highlight-match-bg: #544415;
+      --shadow: 0 0 30px rgba(234, 179, 8, 0.25);
     }
     body.skin-golden.light-mode, .skin-golden.light-mode, .light-mode .skin-golden {
       --bg-color: #fefce8;
       --card-bg: #ffffff;
       --text-color: #713f12;
-      --border-color: #ca8a04;
-      --thick-border-color: var(--hint-color);
+      --border-color: #eab308;
+      --thick-border-color: #ca8a04;
       --light-border: #fef08a;
-      --primary-color: var(--hint-color);
+      --primary-color: #ca8a04;
       --highlight-line-bg: #fef9c3;
       --selected-bg: #fef08a;
       --highlight-match-bg: #fefce8;
-      --shadow: 0 10px 25px -5px rgba(202, 138, 4, 0.15);
+      --shadow: 0 8px 20px rgba(202, 138, 4, 0.1);
     }
-    .sudoku-board.skin-golden .cell { background: var(--card-bg); border-color: var(--light-border); color: var(--text-color); }
 
+    /* 7. ROXINHO LAVENDER — Violeta suave e equilibrado */
     body.skin-roxinho, .skin-roxinho {
-      --bg-color: #1e1b4b;
-      --card-bg: #312e81;
-      --text-color: #e0e7ff;
-      --border-color: #818cf8;
-      --thick-border-color: #c7d2fe;
-      --light-border: #4338ca;
+      --bg-color: #13112c;
+      --card-bg: #1e1b4b;
+      --text-color: #c7d2fe;
+      --border-color: #6366f1;
+      --thick-border-color: #818cf8;
+      --light-border: #2e2a72;
       --primary-color: #6366f1;
-      --highlight-line-bg: #1e1b4b;
+      --highlight-line-bg: #282463;
       --selected-bg: #4f46e5;
       --highlight-match-bg: #3730a3;
-      --shadow: 0 0 30px rgba(99, 102, 241, 0.25);
+      --shadow: 0 0 25px rgba(99, 102, 241, 0.2);
     }
     body.skin-roxinho.light-mode, .skin-roxinho.light-mode, .light-mode .skin-roxinho {
       --bg-color: #f5f3ff;
@@ -242,43 +313,41 @@
       --thick-border-color: #6d28d9;
       --light-border: #ede9fe;
       --primary-color: #7c3aed;
-      --highlight-line-bg: #faf5ff;
+      --highlight-line-bg: #ede9fe;
       --selected-bg: #ddd6fe;
-      --highlight-match-bg: #ede9fe;
-      --shadow: 0 10px 25px -5px rgba(124, 58, 237, 0.15);
+      --highlight-match-bg: #f5f3ff;
+      --shadow: 0 8px 20px rgba(109, 40, 217, 0.08);
     }
-    .sudoku-board.skin-roxinho .cell { background: var(--card-bg); border-color: var(--light-border); color: var(--text-color); }
 
+    /* 8. LILÁS MÁGICO (Benj) — Rosa/Roxo mágico e suave */
     body.skin-lilas, .skin-lilas {
-      --bg-color: #2e1065;
-      --card-bg: #4c1d95;
+      --bg-color: #200b3b;
+      --card-bg: #32125a;
       --text-color: #f5d0fe;
-      --border-color: #d946ef;
+      --border-color: #c084fc;
       --thick-border-color: #f0abfc;
-      --light-border: #6b21a8;
-      --primary-color: #e879f9;
-      --highlight-line-bg: #3b0764;
+      --light-border: #481b80;
+      --primary-color: #d946ef;
+      --highlight-line-bg: #431778;
       --selected-bg: #a21caf;
-      --highlight-match-bg: #701a75;
-      --block-completed-bg: #581c87;
-      --shadow: 0 0 35px rgba(217, 70, 239, 0.3);
+      --highlight-match-bg: #5b1f9e;
+      --shadow: 0 0 30px rgba(217, 70, 239, 0.25);
     }
     body.skin-lilas.light-mode, .skin-lilas.light-mode, .light-mode .skin-lilas {
       --bg-color: #fdf4ff;
       --card-bg: #ffffff;
       --text-color: #701a75;
-      --border-color: #e879f9;
-      --thick-border-color: #c084fc;
+      --border-color: #d946ef;
+      --thick-border-color: #a21caf;
       --light-border: #fae8ff;
       --primary-color: #d946ef;
       --highlight-line-bg: #fae8ff;
       --selected-bg: #f5d0fe;
-      --highlight-match-bg: #fbcfe8;
-      --block-completed-bg: #f3e8ff;
-      --shadow: 0 10px 25px -5px rgba(217, 70, 239, 0.15);
+      --highlight-match-bg: #fdf4ff;
+      --shadow: 0 8px 20px rgba(162, 28, 175, 0.08);
     }
-    .sudoku-board.skin-lilas .cell { background: var(--card-bg); border-color: var(--light-border); color: var(--text-color); }
 
+    /* 9. COQUETTE — Rosa pastel delicado */
     body.skin-coquette, .skin-coquette {
       --bg-color: #fff1f2;
       --card-bg: #ffffff;
@@ -290,7 +359,7 @@
       --highlight-line-bg: #fff1f2;
       --selected-bg: #fecdd3;
       --highlight-match-bg: #ffe4e6;
-      --shadow: 0 10px 25px -5px rgba(244, 63, 94, 0.15);
+      --shadow: 0 10px 25px rgba(244, 63, 94, 0.12);
     }
     body.skin-coquette.light-mode, .skin-coquette.light-mode, .light-mode .skin-coquette {
       --bg-color: #fff1f2;
@@ -303,37 +372,43 @@
       --highlight-line-bg: #fff1f2;
       --selected-bg: #fecdd3;
       --highlight-match-bg: #ffe4e6;
-      --shadow: 0 10px 25px -5px rgba(244, 63, 94, 0.15);
+      --shadow: 0 10px 25px rgba(244, 63, 94, 0.12);
     }
-    .sudoku-board.skin-coquette .cell { background: var(--card-bg); border-color: var(--light-border); color: var(--text-color); }
 
+    /* 10. ULTRAMODEL / ULTRAKILL — Escuro profundo com contraste alto vermelho/branco */
     body.skin-ultrakill, .skin-ultrakill {
-      --bg-color: #050505;
-      --card-bg: #121212;
-      --text-color: #ffffff;
-      --border-color: #e11d48;
-      --thick-border-color: #ff2d55;
+      --bg-color: #080808;
+      --card-bg: #141414;
+      --text-color: #f8fafc;
+      --border-color: #f43f5e;
+      --thick-border-color: #fb7185;
       --light-border: #262626;
-      --primary-color: #f43f5e;
-      --highlight-line-bg: #0a0a0a;
-      --selected-bg: #9f1239;
-      --highlight-match-bg: #1f1f1f;
-      --shadow: 0 0 35px rgba(225, 29, 72, 0.35);
+      --primary-color: #e11d48;
+      --highlight-line-bg: #221216;
+      --selected-bg: #be123c;
+      --highlight-match-bg: #3b1219;
+      --shadow: 0 0 30px rgba(225, 29, 72, 0.25);
     }
     body.skin-ultrakill.light-mode, .skin-ultrakill.light-mode, .light-mode .skin-ultrakill {
       --bg-color: #fafafa;
       --card-bg: #ffffff;
-      --text-color: #0a0a0a;
+      --text-color: #0f172a;
       --border-color: #e11d48;
-      --thick-border-color: #be123c;
-      --light-border: #e5e5e5;
+      --thick-border-color: #9f1239;
+      --light-border: #f1f5f9;
       --primary-color: #e11d48;
-      --highlight-line-bg: #f5f5f5;
+      --highlight-line-bg: #ffe4e6;
       --selected-bg: #fecdd3;
-      --highlight-match-bg: #ffe4e6;
-      --shadow: 0 10px 25px -5px rgba(225, 29, 72, 0.2);
+      --highlight-match-bg: #fff1f2;
+      --shadow: 0 8px 20px rgba(225, 29, 72, 0.12);
     }
-    .sudoku-board.skin-ultrakill .cell { background: var(--card-bg); border-color: var(--light-border); color: var(--text-color); }
+
+
+    /* Forçar canvas do confetti para cima de todos os modais e popups */
+    canvas.confetti-canvas {
+      z-index: 12000 !important;
+      pointer-events: none !important;
+    }
 
     /* ==========================================
        ESTRUTURA GERAL E LAYOUT RESPONSIVO
@@ -341,7 +416,7 @@
     * { box-sizing: border-box; }
 
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background-color: var(--bg-color);
       color: var(--text-color);
       display: flex;
@@ -471,15 +546,73 @@
 
     @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.12); } 100% { transform: scale(1); } }
 
+    /* Layout Principal & Grid Responsivo (W3Schools & Modern CSS Grid/Flexbox Guidelines) */
     .main-wrapper {
-      display: flex; flex-direction: column; align-items: center; gap: 20px;
-      max-width: 900px; width: 100%; margin-top: 60px; flex: 1;
+      display: flex; 
+      flex-direction: column; 
+      align-items: center; 
+      gap: 24px;
+      max-width: 1024px; 
+      width: 100%; 
+      margin: 70px auto 30px auto; 
+      flex: 1;
+      padding: 0 16px;
     }
 
-    .top-section { display: flex; flex-wrap: wrap; gap: 20px; width: 100%; justify-content: center; }
-    .container { background: var(--card-bg); padding: 20px; border-radius: 16px; box-shadow: var(--shadow); flex: 1 1 420px; max-width: 480px; width: 100%; border: 1px solid var(--light-border); transition: background-color 0.3s, border-color 0.3s; }
-    .sidebar { background: var(--card-bg); padding: 20px; border-radius: 16px; box-shadow: var(--shadow); flex: 1 1 280px; max-width: 480px; width: 100%; display: flex; flex-direction: column; gap: 20px; border: 1px solid var(--light-border); transition: background-color 0.3s, border-color 0.3s; }
-    .bottom-section { background: var(--card-bg); padding: 20px; border-radius: 16px; box-shadow: var(--shadow); width: 100%; overflow-x: auto; border: 1px solid var(--light-border); transition: background-color 0.3s, border-color 0.3s; }
+    .top-section { 
+      display: grid; 
+      grid-template-columns: minmax(340px, 460px) minmax(280px, 360px); 
+      gap: 24px; 
+      width: 100%; 
+      justify-content: center; 
+      align-items: start;
+    }
+
+    @media (max-width: 860px) {
+      .top-section {
+        grid-template-columns: 1fr;
+        justify-items: center;
+      }
+    }
+
+    .container { 
+      background: var(--card-bg); 
+      padding: 24px; 
+      border-radius: 20px; 
+      box-shadow: var(--shadow); 
+      width: 100%; 
+      max-width: 460px;
+      border: 1px solid var(--light-border); 
+      transition: background-color 0.3s, border-color 0.3s, box-shadow 0.3s; 
+    }
+
+    .sidebar { 
+      background: var(--card-bg); 
+      padding: 24px; 
+      border-radius: 20px; 
+      box-shadow: var(--shadow); 
+      width: 100%; 
+      max-width: 380px; 
+      display: flex; 
+      flex-direction: column; 
+      gap: 16px; 
+      border: 1px solid var(--light-border); 
+      transition: background-color 0.3s, border-color 0.3s, box-shadow 0.3s; 
+      overflow: hidden;
+      position: relative;
+    }
+
+    .bottom-section { 
+      background: var(--card-bg); 
+      padding: 24px; 
+      border-radius: 20px; 
+      box-shadow: var(--shadow); 
+      width: 100%; 
+      max-width: 864px;
+      overflow-x: auto; 
+      border: 1px solid var(--light-border); 
+      transition: background-color 0.3s, border-color 0.3s; 
+    }
 
     h1 { text-align: center; margin: 0 0 16px 0; font-size: 26px; font-weight: 800; background: linear-gradient(45deg, var(--primary-color), var(--hint-color)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
     h2, h3 { text-align: center; margin-top: 0; font-size: 16px; border-bottom: 2px solid var(--primary-color); padding-bottom: 8px; margin-bottom: 14px; font-weight: 700; letter-spacing: 0.5px; }
@@ -492,7 +625,27 @@
     .controls { display: flex; flex-direction: column; gap: 12px; margin-bottom: 14px; }
     .row { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
 
-    select, button, input[type="text"], input[type="password"], input[type="number"] { padding: 8px 12px; font-size: 13px; border-radius: 8px; border: 1px solid var(--light-border); background-color: var(--card-bg); color: var(--text-color); cursor: pointer; transition: all 0.2s; }
+    select, button, input[type="text"], input[type="password"], input[type="number"] { 
+      padding: 10px 16px; 
+      font-size: 13px; 
+      font-weight: 600;
+      border-radius: 10px; 
+      border: 1px solid var(--light-border); 
+      background-color: var(--card-bg); 
+      color: var(--text-color); 
+      cursor: pointer; 
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    button:hover {
+      transform: translateY(-2px);
+      filter: brightness(1.08);
+      box-shadow: 0 6px 15px rgba(0,0,0,0.12);
+    }
+    button:active {
+      transform: translateY(1px) scale(0.97);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
     select option:disabled { color: var(--locked-color); font-style: italic; }
     input[type="text"], input[type="password"], input[type="number"] { cursor: text; }
     select:focus, input:focus { outline: 2px solid var(--primary-color); }
@@ -523,13 +676,30 @@
       display: flex; 
       align-items: center; 
       justify-content: center; 
-      font-size: clamp(15px, 4vw, 21px); 
-      font-weight: bold; 
+      font-size: clamp(16px, 4.5vw, 22px); 
+      font-family: 'Outfit', 'Inter', sans-serif;
+      font-weight: 700; 
       user-select: none; 
       cursor: pointer; 
       background: var(--card-bg); 
       position: relative; 
-      transition: background-color 0.15s; 
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
+    }
+    @keyframes popIn {
+      0% { transform: scale(0.7); opacity: 0.5; }
+      60% { transform: scale(1.15); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .cell.pop-num {
+      animation: popIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    @keyframes blockPulse {
+      0% { transform: scale(1); box-shadow: 0 0 0 rgba(34, 197, 94, 0); }
+      50% { transform: scale(1.02); box-shadow: 0 0 15px rgba(34, 197, 94, 0.4); }
+      100% { transform: scale(1); box-shadow: 0 0 0 rgba(34, 197, 94, 0); }
+    }
+    .cell.block-completed {
+      background-color: var(--block-completed-bg) !important;
     }
     .cell:nth-child(3n) { border-right: 2px solid var(--thick-border-color); }
     .cell:nth-child(9n) { border-right: none; }
@@ -587,11 +757,272 @@
     footer a { color: var(--primary-color); text-decoration: none; font-weight: bold; }
     footer a:hover { text-decoration: underline; }
 
-    .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.65); backdrop-filter: blur(5px); z-index: 9999; justify-content: center; align-items: center; padding: 16px; opacity: 0; transition: opacity 0.25s ease; }
-    .modal-overlay.active { display: flex; opacity: 1; }
+
     
-    .modal-card { background: var(--card-bg); padding: 24px; border-radius: 20px; text-align: center; max-width: 400px; width: 100%; box-shadow: 0 20px 35px rgba(0, 0, 0, 0.4); border: 1px solid var(--light-border); transform: scale(0.9); transition: transform 0.25s ease; position: relative; z-index: 10000; }
-    .modal-overlay.active .modal-card { transform: scale(1); }
+
+    /* Forçar canvas do confetti para cima de todos os modais e popups */
+    canvas.confetti-canvas {
+      z-index: 12000 !important;
+      pointer-events: none !important;
+    }
+
+    /* ==========================================
+       REDESIGN UX/UI DAS CONFIGURAÇÕES E PAINEL ADMIN
+       ========================================== */
+    .settings-section {
+      text-align: left;
+      margin-bottom: 20px;
+    }
+
+    .settings-section-title {
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--note-color);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .settings-group {
+      background: var(--highlight-line-bg);
+      border: 1px solid var(--light-border);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    .switch-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      margin: 0;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-color);
+      border-bottom: 1px solid var(--light-border);
+      transition: background 0.15s ease;
+    }
+
+    .switch-container:last-child {
+      border-bottom: none;
+    }
+
+    .switch-container:hover {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    /* Standardized Modern Toggle Switch */
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 24px;
+      flex-shrink: 0;
+    }
+
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: var(--border-color);
+      transition: .25s cubic-bezier(0.4, 0, 0.2, 1);
+      border-radius: 24px;
+    }
+
+    .toggle-slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .25s cubic-bezier(0.4, 0, 0.2, 1);
+      border-radius: 50%;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .toggle-switch input:checked + .toggle-slider {
+      background-color: var(--primary-color);
+    }
+
+    .toggle-switch input:checked + .toggle-slider:before {
+      transform: translateX(20px);
+    }
+
+    /* Admin Panel UX Redesign */
+    .admin-card {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px dashed var(--hint-color);
+      border-radius: 16px;
+      padding: 16px;
+      margin-top: 16px;
+      text-align: left;
+    }
+
+    .admin-header-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--hint-color);
+      border: 1px solid var(--hint-color);
+      font-size: 11px;
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: 20px;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .admin-actions-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .admin-btn {
+      padding: 10px 12px;
+      font-size: 12px;
+      font-weight: 700;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .admin-btn:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.1);
+    }
+
+
+    /* Forçar canvas do confetti para cima de todos os modais e popups */
+    canvas.confetti-canvas {
+      z-index: 12000 !important;
+      pointer-events: none !important;
+    }
+
+    /* ==========================================
+       ANIMAÇÕES E REDESIGN DOS MODAIS & TELA DE VITÓRIA
+       ========================================== */
+    @keyframes modalBackdropFade {
+      from { opacity: 0; backdrop-filter: blur(0px); }
+      to { opacity: 1; backdrop-filter: blur(8px); }
+    }
+
+    @keyframes modalPopIn {
+      0% { transform: scale(0.7) translateY(30px); opacity: 0; }
+      70% { transform: scale(1.03) translateY(-5px); opacity: 1; }
+      100% { transform: scale(1) translateY(0); opacity: 1; }
+    }
+
+    @keyframes trophyGlow {
+      0% { filter: drop-shadow(0 0 10px rgba(245, 158, 11, 0.4)); transform: scale(1) rotate(0deg); }
+      50% { filter: drop-shadow(0 0 30px rgba(245, 158, 11, 0.9)); transform: scale(1.1) rotate(5deg); }
+      100% { filter: drop-shadow(0 0 10px rgba(245, 158, 11, 0.4)); transform: scale(1) rotate(0deg); }
+    }
+
+    .modal-overlay { 
+      display: none; 
+      position: fixed; 
+      top: 0; left: 0; right: 0; bottom: 0; 
+      background: rgba(15, 23, 42, 0.75); 
+      backdrop-filter: blur(8px); 
+      z-index: 9999; 
+      justify-content: center; 
+      align-items: center; 
+      padding: 16px; 
+      opacity: 0; 
+      transition: opacity 0.3s ease; 
+    }
+    
+    .modal-overlay.active { 
+      display: flex; 
+      opacity: 1; 
+      animation: modalBackdropFade 0.3s ease forwards;
+    }
+    
+    .modal-card { 
+      background: var(--card-bg); 
+      padding: 28px 24px; 
+      border-radius: 24px; 
+      text-align: center; 
+      max-width: 420px; 
+      width: 100%; 
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px var(--light-border); 
+      border: 1px solid var(--light-border); 
+      transform: scale(0.85); 
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); 
+      position: relative; 
+      z-index: 10000; 
+      overflow: hidden;
+    }
+    
+    .modal-overlay.active .modal-card { 
+      animation: modalPopIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+
+    /* TELA DE VITÓRIA REDESENHADA (EPIC WIN CARD) */
+    .win-card-content {
+      position: relative;
+      z-index: 2;
+    }
+    
+    .win-trophy-icon {
+      font-size: 64px;
+      margin: 8px 0 12px 0;
+      display: inline-block;
+      animation: trophyGlow 2.5s infinite ease-in-out;
+    }
+
+    .win-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin: 20px 0;
+    }
+
+    .win-stat-box {
+      background: var(--highlight-line-bg);
+      border: 1px solid var(--light-border);
+      border-radius: 14px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .win-stat-box span {
+      font-size: 11px;
+      color: var(--note-color);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .win-stat-box strong {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--text-color);
+    }
+
 
     #admin-achievements-modal, #confirm-modal, #alert-modal { z-index: 11000 !important; }
     #admin-achievements-modal .modal-card, #confirm-modal .modal-card, #alert-modal .modal-card { z-index: 11001 !important; }
@@ -600,7 +1031,23 @@
     .epic-trophy { font-size: 64px; animation: bounceTrophy 1.5s infinite alternate; margin: 10px 0; }
     @keyframes bounceTrophy { 0% { transform: translateY(0) scale(1); } 100% { transform: translateY(-12px) scale(1.08); } }
 
-    .love-card { background: rgba(236, 72, 153, 0.1); border: 1px solid rgba(236, 72, 153, 0.3); padding: 18px; border-radius: 12px; font-size: 16px; font-weight: bold; color: #ec4899; margin: 14px 0; line-height: 1.4; }
+    .love-card { 
+      background: rgba(168, 85, 247, 0.08); 
+      border: 1px solid var(--light-border); 
+      padding: 18px; 
+      border-radius: 14px; 
+      font-size: 17px; 
+      font-weight: 800; 
+      color: var(--text-color); 
+      margin: 16px 0; 
+      line-height: 1.5; 
+    }
+    
+    /* Outline roxo elegante no contorno da tela de popup do easter egg */
+    .easter-egg-modal-card {
+      border: 2px solid #a855f7 !important;
+      box-shadow: 0 0 40px rgba(168, 85, 247, 0.4), 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+    }
     .switch-container { display: flex; justify-content: space-between; align-items: center; margin: 14px 0; font-size: 14px; }
 
     .admin-achievements-list { display: flex; flex-direction: column; gap: 8px; max-height: 220px; overflow-y: auto; text-align: left; margin: 12px 0; padding-right: 4px; }
@@ -619,6 +1066,13 @@
       .numpad { grid-template-columns: repeat(6, 1fr); }
     }
   
+
+    /* Forçar canvas do confetti para cima de todos os modais e popups */
+    canvas.confetti-canvas {
+      z-index: 12000 !important;
+      pointer-events: none !important;
+    }
+
     /* ==========================================
        PAINEL DE ATUALIZAÇÕES (SIDE PANEL DOURADO)
        ================================---------- */
@@ -676,6 +1130,292 @@
       }
     }
 
+
+    
+    
+    /* SCROLLBAR ESTILIZADA QUE DÁ MATCH COM O TEMA */
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.05);
+      border-radius: 8px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: var(--border-color);
+      border-radius: 8px;
+      transition: background 0.2s;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: var(--primary-color);
+    }
+
+    /* CSS DO SLIDER DA SIDEBAR */
+    @keyframes fadeInPane {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .sidebar {
+      overflow: hidden;
+      position: relative;
+    }
+    .sidebar-slider-wrapper {
+      position: relative;
+      background: var(--highlight-line-bg);
+      border-radius: 12px;
+      padding: 4px;
+      border: 1px solid var(--light-border);
+      margin-bottom: 14px;
+    }
+    .sidebar-slider-tabs {
+      display: flex;
+      position: relative;
+      z-index: 2;
+    }
+    .slider-indicator {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 50%;
+      height: 100%;
+      background: var(--card-bg);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 1;
+    }
+    .sidebar-tab {
+      flex: 1;
+      padding: 9px 12px;
+      font-size: 13px;
+      font-weight: 700;
+      border: none;
+      background: transparent;
+      color: var(--note-color);
+      border-radius: 8px;
+      cursor: pointer;
+      position: relative;
+      z-index: 3;
+      transition: color 0.2s;
+    }
+    .sidebar-tab.active {
+      color: var(--text-color);
+    }
+    .sidebar-slider-container {
+      display: flex;
+      width: 200%;
+      transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .sidebar-slide {
+      width: 50%;
+      flex-shrink: 0;
+      padding: 0 2px;
+    }
+
+    .sidebar-tabs {
+      display: flex;
+      background: var(--highlight-line-bg);
+      border-radius: 12px;
+      padding: 4px;
+      border: 1px solid var(--light-border);
+      gap: 4px;
+      margin-bottom: 12px;
+    }
+    .sidebar-tab {
+      flex: 1;
+      padding: 8px 12px;
+      font-size: 13px;
+      font-weight: 700;
+      border: none;
+      background: transparent;
+      color: var(--note-color);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .sidebar-tab.active {
+      background: var(--card-bg);
+      color: var(--text-color);
+      box-shadow: var(--shadow);
+    }
+    .records-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .record-card {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 14px;
+      background: var(--highlight-line-bg);
+      border: 1px solid var(--light-border);
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+
+    /* Animação de Balões de Coração Roxos Aprimorada */
+    .floating-heart {
+      position: fixed;
+      bottom: -30px;
+      font-size: 28px;
+      z-index: 99999;
+      user-select: none;
+      pointer-events: none;
+      filter: drop-shadow(0 0 8px rgba(168, 85, 247, 0.6));
+      animation: floatPurpleHearts 4s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+    }
+    @keyframes floatPurpleHearts {
+      0% { 
+        transform: translateY(0) translateX(0) scale(0.4) rotate(0deg); 
+        opacity: 0; 
+      }
+      15% { 
+        opacity: 1; 
+        transform: translateY(-120px) translateX(15px) scale(1.25) rotate(-15deg); 
+      }
+      50% { 
+        opacity: 0.95; 
+        transform: translateY(-380px) translateX(-20px) scale(1.1) rotate(20deg); 
+      }
+      85% { 
+        opacity: 0.8; 
+        transform: translateY(-620px) translateX(25px) scale(1.35) rotate(-10deg); 
+      }
+      100% { 
+        transform: translateY(-800px) translateX(-10px) scale(1.5) rotate(15deg); 
+        opacity: 0; 
+      }
+    }
+
+
+    /* Mercadinho UX Otimizado (W3Schools & Material Design Guidelines) */
+    .market-drawer { 
+      position: fixed; 
+      top: 0; 
+      right: -400px; 
+      width: 380px; 
+      height: 100%; 
+      background: var(--card-bg); 
+      box-shadow: -10px 0 35px rgba(0,0,0,0.4); 
+      z-index: 1050; 
+      transition: right 0.35s cubic-bezier(0.4, 0, 0.2, 1); 
+      display: flex; 
+      flex-direction: column; 
+      border-left: 1px solid var(--light-border); 
+    }
+    .market-drawer.active { right: 0; }
+    
+    .market-header { 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      padding: 20px 24px; 
+      border-bottom: 1px solid var(--light-border); 
+      background: rgba(0,0,0,0.02);
+    }
+    
+    .market-body { 
+      padding: 24px; 
+      overflow-y: auto; 
+      flex: 1; 
+      display: flex; 
+      flex-direction: column; 
+      gap: 16px; 
+    }
+    
+    .market-section-title {
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--note-color);
+      margin: 8px 0 4px 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .skin-market-card { 
+      background: var(--highlight-line-bg); 
+      border: 1px solid var(--light-border); 
+      padding: 16px; 
+      border-radius: 14px; 
+      display: flex; 
+      flex-direction: column;
+      gap: 12px;
+      transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+    }
+    
+    .skin-market-card:hover {
+      border-color: var(--primary-color);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .skin-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .skin-market-info {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .skin-market-info strong {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-color);
+    }
+
+    .skin-market-info small {
+      font-size: 12px;
+      color: var(--note-color);
+      line-height: 1.3;
+    }
+
+    .skin-actions-group {
+      display: flex;
+      gap: 8px;
+      width: 100%;
+    }
+
+    .market-action-btn {
+      flex: 2;
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      transition: filter 0.2s, transform 0.1s;
+      text-align: center;
+    }
+
+    .market-preview-btn {
+      flex: 1;
+      padding: 8px 12px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 600;
+      background: transparent;
+      border: 1px solid var(--light-border);
+      color: var(--text-color);
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
+      text-align: center;
+    }
+
+    .market-preview-btn:hover {
+      background: rgba(255,255,255,0.05);
+      border-color: var(--primary-color);
+    }
 </style>
 </head>
 <body>
@@ -700,130 +1440,184 @@
 
 <div class="market-drawer" id="market-drawer">
   <div class="market-header">
-    <h2 style="margin:0; font-size:18px;">🛒 Mercadinho de Estilos</h2>
-    <button class="action-btn" style="padding: 4px 10px;" id="btn-close-market">✕</button>
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <span style="font-size: 20px;">🛒</span>
+      <div>
+        <h2 style="margin:0; font-size:16px; font-weight: 800; border: none; padding: 0;">Mercadinho de Estilos</h2>
+        <small style="font-size: 11px; color: var(--note-color);">Personalize sua experiência</small>
+      </div>
+    </div>
+    <button class="action-btn" style="padding: 6px 12px; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.05); border: 1px solid var(--light-border);" id="btn-close-market">✕</button>
   </div>
+  
   <div class="market-body">
-    <p style="font-size: 13px; margin: 0; color: var(--note-color);">Ganhe pontos vencendo partidas para desbloquear visuais exclusivos para o seu tabuleiro e site!</p>
-    <div style="font-weight: bold; font-size: 14px; margin-top: 4px;">Seus Pontos: <span id="market-points-count" style="color: var(--hint-color);">0</span></div>
-    
-    
-    <div class="skin-market-card">
+    <div style="background: var(--highlight-line-bg); border: 1px solid var(--light-border); padding: 14px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center;">
       <div>
-        <strong>💡 Pacote de Dica (+1)</strong><br><small style="color: var(--note-color);">Adiciona +1 dica na sua partida atual (15 pts)</small>
+        <span style="font-size: 11px; font-weight: 700; color: var(--note-color); text-transform: uppercase; display: block;">Seu Saldo</span>
+        <strong id="market-points-count" style="font-size: 20px; color: var(--hint-color);">0</strong> <span style="font-size: 12px; font-weight: 600;">pontos</span>
       </div>
-      <button class="action-btn" style="background-color: var(--hint-color); color: #000;" onclick="buyHintWithPoints(15)">Comprar (+1)</button>
+      <div style="font-size: 24px;">🪙</div>
     </div>
 
-    <hr style="border:0; border-top:1px solid var(--light-border); margin: 6px 0;">
-
+    <div class="market-section-title">💡 Power-ups & Recursos</div>
+    
     <div class="skin-market-card">
-      <div>
-        <strong>Clássico</strong><br><small style="color: var(--note-color);">O visual original padrão (Grátis)</small>
+      <div class="skin-card-top">
+        <div class="skin-market-info">
+          <strong>Pacote de 3 Dicas</strong>
+          <small>Adiciona +3 dicas estratégicas à sua partida atual.</small>
+        </div>
       </div>
-      <button class="action-btn" id="skin-btn-classic" onclick="selectSkin('classic')">Usar</button>
+      <div class="skin-actions-group">
+        <button class="action-btn market-action-btn" style="background-color: var(--hint-color); color: #000;" onclick="buyHintWithPoints(15)">Resgatar (15 pts)</button>
+      </div>
+    </div>
+
+    <div class="market-section-title">🎨 Temas & Skins do Tabuleiro</div>
+    
+    <div class="skin-market-card">
+      <div class="skin-card-top">
+        <div class="skin-market-info">
+          <strong>Clássico</strong>
+          <small>O visual original padrão do Sudoku Pro.</small>
+        </div>
+      </div>
+      <div class="skin-actions-group">
+        <button class="action-btn market-action-btn" id="skin-btn-classic" onclick="selectSkin('classic')">Usar</button>
+      </div>
     </div>
 
     <div class="skin-market-card">
-      <div>
-        <strong>Esmeralda Minimal</strong><br><small style="color: var(--note-color);">Tons verdes limpos (Grátis)</small>
+      <div class="skin-card-top">
+        <div class="skin-market-info">
+          <strong>Esmeralda Minimal</strong>
+          <small>Tons verdes limpos e relaxantes.</small>
+        </div>
       </div>
-      <div style="display: flex; gap: 6px;">
-        <button class="action-btn" style="background-color: #64748b;" onclick="previewSkin('emerald')">Preview</button>
-        <button class="action-btn" id="skin-btn-emerald" onclick="buyOrSelectSkin('emerald', 0)">Usar</button>
+      <div class="skin-actions-group">
+        <button class="market-preview-btn" onclick="previewSkin('emerald')">👁️ Preview</button>
+        <button class="action-btn market-action-btn" id="skin-btn-emerald" onclick="buyOrSelectSkin('emerald', 0)">Usar</button>
       </div>
     </div>
 
     <div class="skin-market-card"> 
-      <div> 
-        <strong>🌿 Musgo Soft</strong><br> <small style="color: var(--note-color);"> Verde-musgo suave e confortável aos olhos (Grátis) </small> 
+      <div class="skin-card-top">
+        <div class="skin-market-info"> 
+          <strong>Musgo Soft</strong>
+          <small>Verde-musgo orgânico e confortável.</small>
+        </div> 
+      </div>
+      <div class="skin-actions-group"> 
+        <button class="market-preview-btn" onclick="previewSkin('musgo')">👁️ Preview</button> 
+        <button class="action-btn market-action-btn" id="skin-btn-musgo" onclick="buyOrSelectSkin('musgo', 0)">Usar</button> 
       </div> 
-      <div style="display: flex; gap: 6px;"> 
-        <button class="action-btn" style="background-color: #64748b;" onclick="previewSkin('musgo')"> Preview </button> 
-        <button class="action-btn" id="skin-btn-musgo" onclick="buyOrSelectSkin('musgo', 0)"> Usar </button> 
-      </div> 
     </div>
 
     <div class="skin-market-card">
-      <div>
-        <strong>Neon Cyber</strong><br><small style="color: var(--note-color);">Estilo futurista brilhante (50 pts)</small>
+      <div class="skin-card-top">
+        <div class="skin-market-info">
+          <strong>Neon Cyber</strong>
+          <small>Estilo futurista com alto contraste.</small>
+        </div>
       </div>
-      <div style="display: flex; gap: 6px;">
-        <button class="action-btn" style="background-color: #64748b;" onclick="previewSkin('neon')">Preview</button>
-        <button class="action-btn" id="skin-btn-neon" onclick="buyOrSelectSkin('neon', 50)">Comprar</button>
-      </div>
-    </div>
-
-    <div class="skin-market-card">
-      <div>
-        <strong>Retrô Vintage</strong><br><small style="color: var(--note-color);">Tons pastéis aconchegantes (100 pts)</small>
-      </div>
-      <div style="display: flex; gap: 6px;">
-        <button class="action-btn" style="background-color: #64748b;" onclick="previewSkin('retro')">Preview</button>
-        <button class="action-btn" id="skin-btn-retro" onclick="buyOrSelectSkin('retro', 100)">Comprar</button>
+      <div class="skin-actions-group">
+        <button class="market-preview-btn" onclick="previewSkin('neon')">👁️ Preview</button>
+        <button class="action-btn market-action-btn" id="skin-btn-neon" onclick="buyOrSelectSkin('neon', 50)">50 pts</button>
       </div>
     </div>
 
     <div class="skin-market-card">
-      <div>
-        <strong>Pôr do Sol VIP</strong><br><small style="color: var(--note-color);">Visual exclusivo premium (200 pts)</small>
+      <div class="skin-card-top">
+        <div class="skin-market-info">
+          <strong>Retrô Vintage</strong>
+          <small>Tons pastéis e terracota acolhedores.</small>
+        </div>
       </div>
-      <div style="display: flex; gap: 6px;">
-        <button class="action-btn" style="background-color: #64748b;" onclick="previewSkin('sunset')">Preview</button>
-        <button class="action-btn" id="skin-btn-sunset" onclick="buyOrSelectSkin('sunset', 200)">Comprar</button>
+      <div class="skin-actions-group">
+        <button class="market-preview-btn" onclick="previewSkin('retro')">👁️ Preview</button>
+        <button class="action-btn market-action-btn" id="skin-btn-retro" onclick="buyOrSelectSkin('retro', 100)">100 pts</button>
       </div>
     </div>
 
     <div class="skin-market-card">
-      <div>
-        <strong>🟣 Roxinho Lavender</strong><br><small style="color: var(--note-color);">Tons roxos relaxantes (75 pts)</small>
+      <div class="skin-card-top">
+        <div class="skin-market-info">
+          <strong>Pôr do Sol VIP</strong>
+          <small>Visual exclusivo aquecido e elegante.</small>
+        </div>
       </div>
-      <div style="display: flex; gap: 6px;">
-        <button class="action-btn" style="background-color: #64748b;" onclick="previewSkin('roxinho')">Preview</button>
-        <button class="action-btn" id="skin-btn-roxinho" onclick="buyOrSelectSkin('roxinho', 75)">Comprar</button>
+      <div class="skin-actions-group">
+        <button class="market-preview-btn" onclick="previewSkin('sunset')">👁️ Preview</button>
+        <button class="action-btn market-action-btn" id="skin-btn-sunset" onclick="buyOrSelectSkin('sunset', 200)">200 pts</button>
+      </div>
+    </div>
+
+    <div class="skin-market-card">
+      <div class="skin-card-top">
+        <div class="skin-market-info">
+          <strong>Roxinho Lavender</strong>
+          <small>Violetas suaves para maior foco.</small>
+        </div>
+      </div>
+      <div class="skin-actions-group">
+        <button class="market-preview-btn" onclick="previewSkin('roxinho')">👁️ Preview</button>
+        <button class="action-btn market-action-btn" id="skin-btn-roxinho" onclick="buyOrSelectSkin('roxinho', 75)">75 pts</button>
       </div>
     </div>
 
     <div class="skin-market-card" id="card-skin-lilas" style="display: none;">
-      <div>
-        <strong>🔮 Lilás Mágico (Benj)</strong><br><small style="color: var(--note-color);">Tema secreto desbloqueado! ✨</small>
+      <div class="skin-card-top">
+        <div class="skin-market-info">
+          <strong>Lilás Mágico (Benj)</strong>
+          <small>Tema secreto especial desbloqueado!</small>
+        </div>
       </div>
-      <div style="display: flex; gap: 6px;">
-        <button class="action-btn" style="background-color: #64748b;" onclick="previewSkin('lilas')">Preview</button>
-        <button class="action-btn" id="skin-btn-lilas" onclick="selectSkin('lilas')">Usar</button>
-      </div>
-    </div>
-
-    <div class="skin-market-card">
-      <div>
-        <strong>🎀 Coquette</strong><br><small style="color: var(--note-color);">Estilo delicado e rosadinho (120 pts)</small>
-      </div>
-      <div style="display: flex; gap: 6px;">
-        <button class="action-btn" style="background-color: #64748b;" onclick="previewSkin('coquette')">Preview</button>
-        <button class="action-btn" id="skin-btn-coquette" onclick="buyOrSelectSkin('coquette', 120)">Comprar</button>
+      <div class="skin-actions-group">
+        <button class="market-preview-btn" onclick="previewSkin('lilas')">👁️ Preview</button>
+        <button class="action-btn market-action-btn" id="skin-btn-lilas" onclick="selectSkin('lilas')">Usar</button>
       </div>
     </div>
 
     <div class="skin-market-card">
-      <div>
-        <strong>🩸 ULTRAMODEL / Ultrakill</strong><br><small style="color: var(--note-color);">Preto, branco e carmesim (250 pts)</small>
+      <div class="skin-card-top">
+        <div class="skin-market-info">
+          <strong>Coquette</strong>
+          <small>Estilo delicado em tons de rosa pastel.</small>
+        </div>
       </div>
-      <div style="display: flex; gap: 6px;">
-        <button class="action-btn" style="background-color: #64748b;" onclick="previewSkin('ultrakill')">Preview</button>
-        <button class="action-btn" id="skin-btn-ultrakill" onclick="buyOrSelectSkin('ultrakill', 250)">Comprar</button>
+      <div class="skin-actions-group">
+        <button class="market-preview-btn" onclick="previewSkin('coquette')">👁️ Preview</button>
+        <button class="action-btn market-action-btn" id="skin-btn-coquette" onclick="buyOrSelectSkin('coquette', 120)">120 pts</button>
+      </div>
+    </div>
+
+    <div class="skin-market-card">
+      <div class="skin-card-top">
+        <div class="skin-market-info">
+          <strong>ULTRAMODEL / Ultrakill</strong>
+          <small>Contraste intenso em preto e carmesim.</small>
+        </div>
+      </div>
+      <div class="skin-actions-group">
+        <button class="market-preview-btn" onclick="previewSkin('ultrakill')">👁️ Preview</button>
+        <button class="action-btn market-action-btn" id="skin-btn-ultrakill" onclick="buyOrSelectSkin('ultrakill', 250)">250 pts</button>
       </div>
     </div>
 
     <div class="skin-market-card" id="card-skin-golden">
-      <div>
-        <strong>👑 Dourado VIP</strong><br><small style="color: var(--note-color);" id="golden-desc">Desbloqueie conquistando 1 troféu</small>
+      <div class="skin-card-top">
+        <div class="skin-market-info">
+          <strong>Dourado VIP</strong>
+          <small id="golden-desc">Conquiste 1 troféu para desbloquear.</small>
+        </div>
       </div>
-      <div style="display: flex; gap: 6px;" id="golden-actions">
-        <button class="action-btn" style="background-color: #64748b;" onclick="previewSkin('golden')">Preview</button>
-        <button class="action-btn" id="skin-btn-golden" onclick="buyOrSelectSkin('golden', 0)">Bloqueado</button>
+      <div class="skin-actions-group" id="golden-actions">
+        <button class="market-preview-btn" onclick="previewSkin('golden')">👁️ Preview</button>
+        <button class="action-btn market-action-btn" id="skin-btn-golden" onclick="buyOrSelectSkin('golden', 0)">Bloqueado</button>
       </div>
     </div>
   </div>
+</div>
 </div>
 
 
@@ -838,11 +1632,11 @@
     <h2 style="text-align: center; color: var(--hint-color); border-bottom-color: var(--hint-color);">📜 ÚLTIMA ATUALIZAÇÃO</h2>
     <div style="font-size: 13px; line-height: 1.6; margin: 16px 0; max-height: 280px; overflow-y: auto; padding-right: 6px;">
       <ul style="padding-left: 18px; margin: 0; display: flex; flex-direction: column; gap: 10px;">
-        <li>💡 <strong>Dicas no Mercadinho:</strong> Agora você pode trocar 15 pontos por +1 Dica diretamente na lojinha para te ajudar em partidas difíceis!</li>
-        <li>🐉 <strong>Modo Lendário Acessível:</strong> Agora você pode desbloquear o modo Lendário apenas vencendo a dificuldade Mestre, sem a exigência de terminar sem erros!</li>
-        <li>🔥 <strong>Sem limite de erros no Mestre/Lendário:</strong> Os modos Mestre e Lendário não reiniciam mais o jogo após 3 erros, permitindo que você conclua partidas desafiadoras no seu ritmo.</li>
-        <li>🛒 <strong>Novos Temas e Estilos:</strong> Adicionados novos temas visuais no Mercadinho, como Musgo Soft e Ultramodel!</li>
-        <li>⚙️ <strong>Ajustes de Balanceamento:</strong> Melhorias gerais na fluidez da interface e suporte para navegação por teclado.</li>
+        <li>💜 <strong>Chuva de Corações Roxos:</strong> Efeito visual flutuante totalmente renovado com animação orgânica e exclusiva em tons roxos mágicos!</li>
+        <li>🔄 <strong>Slider na Barra Lateral:</strong> Transição fluida e animada entre as abas de Recordes e Conquistas.</li>
+        <li>⚙️ <strong>Correção no Painel de Configurações:</strong> Ajuste de layout com rolagem interna (scroll) e acesso garantido ao botão de fechar mesmo com o painel admin ativo.</li>
+        <li>💡 <strong>Dicas no Mercadinho:</strong> Troque pontos por pacotes de dicas diretamente na lojinha!</li>
+        <li>🐉 <strong>Modos Avançados:</strong> Desbloqueio facilitado para Mestre e Lendário com melhor balanceamento de erros.</li>
       </ul>
     </div>
     <button class="action-btn" style="width: 100%; padding: 10px; background-color: var(--hint-color); color: #000; font-weight: bold; font-size: 14px;" onclick="closeChangelogModal()">Legal! 🎉</button>
@@ -906,29 +1700,39 @@
     </div>
 
     <div class="sidebar">
-      <div>
-        <h2>🏆 Melhores Tempos</h2>
-        <div style="font-size: 13px; display: flex; flex-direction: column; gap: 8px;">
-          <div>🟢 Fácil: <strong id="best-easy">--:--</strong></div>
-          <div>🟡 Médio: <strong id="best-medium">--:--</strong></div>
-          <div>🔴 Difícil: <strong id="best-hard">--:--</strong></div>
-          <div id="best-master-container" style="display:none; color: var(--hint-color);">🔥 Mestre: <strong id="best-master">--:--</strong></div>
-          <div id="best-legendary-container" style="display:none; color: #a855f7;">🐉 Lendário: <strong id="best-legendary">--:--</strong></div>
+      <div class="sidebar-slider-wrapper">
+        <div class="sidebar-slider-tabs">
+          <div class="slider-indicator" id="slider-indicator"></div>
+          <button class="sidebar-tab active" id="tab-btn-records" onclick="switchSidebarTab('records')">🏆 Recordes</button>
+          <button class="sidebar-tab" id="tab-btn-badges" onclick="switchSidebarTab('badges')">🏅 Conquistas</button>
         </div>
       </div>
 
-      <div>
-        <h2>🏅 Conquistas</h2>
-        <div class="badges-grid">
-          <div class="badge-card" id="badge-fast" onclick="showAchievementInfo('⚡ Flash', 'Vença qualquer partida em menos de 3 minutos.')">⚡ Flash (&lt;3min)</div>
-          <div class="badge-card" id="badge-lightning" onclick="showAchievementInfo('⚡ Relâmpago', 'Vença qualquer partida em menos de 1 minuto e meio (90 segundos).')">⚡ Relâmpago (&lt;1.5min)</div>
-          <div class="badge-card" id="badge-perfect" onclick="showAchievementInfo('🎯 Perfeito', 'Vença uma partida sem cometer nenhum erro.')">🎯 Perfeito (0 erros)</div>
-          <div class="badge-card" id="badge-nohint" onclick="showAchievementInfo('🧐 Estrategista', 'Vença sem usar nenhuma dica.')">🧐 Estratégia (0 dicas)</div>
-          <div class="badge-card" id="badge-streak" onclick="showAchievementInfo('🔥 Streak', 'Vença 3 partidas seguidas.')">🔥 Streak (3 jogos)</div>
-          <div class="badge-card" id="badge-daily" onclick="showAchievementInfo('📅 Foco Diário', 'Complete com sucesso um Desafio Diário.')">📅 Foco Diário</div>
-          
-          <div class="badge-card special-unlock" id="badge-unlock-master" style="grid-column: span 2;" onclick="showAchievementInfo('🔥 Desbravador', 'Vença uma partida na dificuldade Difícil para desbloquear o nível MESTRE.')">🔒 Desbravador (Mestre)</div>
-          <div class="badge-card special-unlock" id="badge-unlock-legendary" style="grid-column: span 2;" onclick="showAchievementInfo('🐉 Deus do Sudoku', 'Vença uma partida na dificuldade Mestre para desbloquear o modo LENDÁRIO.')">🔒 Deus do Sudoku (Lendário)</div>
+      <div class="tab-content-wrapper" style="position: relative; overflow: hidden;">
+        <div class="tab-content-pane" id="tab-content-records" style="display: block;">
+          <h2>🏆 Melhores Tempos</h2>
+          <div class="records-list">
+            <div class="record-card"><span>🟢 Fácil</span><strong id="best-easy">--:--</strong></div>
+            <div class="record-card"><span>🟡 Médio</span><strong id="best-medium">--:--</strong></div>
+            <div class="record-card"><span>🔴 Difícil</span><strong id="best-hard">--:--</strong></div>
+            <div class="record-card" id="best-master-container" style="display:none; border-color: var(--hint-color);"><span>🔥 Mestre</span><strong id="best-master" style="color: var(--hint-color);">--:--</strong></div>
+            <div class="record-card" id="best-legendary-container" style="display:none; border-color: #a855f7;"><span>🐉 Lendário</span><strong id="best-legendary" style="color: #a855f7;">--:--</strong></div>
+          </div>
+        </div>
+
+        <div class="tab-content-pane" id="tab-content-badges" style="display: none;">
+          <h2>🏅 Conquistas</h2>
+          <div class="badges-grid custom-scrollbar" style="max-height: 280px; overflow-y: auto; padding-right: 6px;">
+            <div class="badge-card" id="badge-fast" onclick="showAchievementInfo('⚡ Flash', 'Vença qualquer partida em menos de 3 minutos.')">⚡ Flash (&lt;3min)</div>
+            <div class="badge-card" id="badge-lightning" onclick="showAchievementInfo('⚡ Relâmpago', 'Vença qualquer partida em menos de 1 minuto e meio (90 segundos).')">⚡ Relâmpago (&lt;1.5min)</div>
+            <div class="badge-card" id="badge-perfect" onclick="showAchievementInfo('🎯 Perfeito', 'Vença uma partida sem cometer nenhum erro.')">🎯 Perfeito (0 erros)</div>
+            <div class="badge-card" id="badge-nohint" onclick="showAchievementInfo('🧐 Estrategista', 'Vença sem usar nenhuma dica.')">🧐 Estratégia (0 dicas)</div>
+            <div class="badge-card" id="badge-streak" onclick="showAchievementInfo('🔥 Streak', 'Vença 3 partidas seguidas.')">🔥 Streak (3 jogos)</div>
+            <div class="badge-card" id="badge-daily" onclick="showAchievementInfo('📅 Foco Diário', 'Complete com sucesso um Desafio Diário.')">📅 Foco Diário</div>
+            
+            <div class="badge-card special-unlock" id="badge-unlock-master" style="grid-column: span 2;" onclick="showAchievementInfo('🔥 Desbravador', 'Vença uma partida na dificuldade Difícil para desbloquear o nível MESTRE.')">🔒 Desbravador (Mestre)</div>
+            <div class="badge-card special-unlock" id="badge-unlock-legendary" style="grid-column: span 2;" onclick="showAchievementInfo('🐉 Deus do Sudoku', 'Vença uma partida na dificuldade Mestre para desbloquear o modo LENDÁRIO.')">🔒 Deus do Sudoku (Lendário)</div>
+          </div>
         </div>
       </div>
     </div>
@@ -974,13 +1778,29 @@
 
 <div class="modal-overlay" id="win-modal">
   <div class="modal-card">
-    <h2>🎉 VITÓRIA! 🎉</h2>
-    <div style="margin: 14px 0; font-size: 14px;">
-      ⏱️ Tempo: <span id="win-time">--:--</span> | ❌ Erros: <span id="win-errors">0</span><br>
-      🪙 Pontos Ganhos: <strong id="win-points" style="color: var(--hint-color);">+0</strong>
+    <div class="win-card-content">
+      <div class="win-trophy-icon">🏆</div>
+      <h2 style="margin: 0; font-size: 24px; color: var(--text-color); border: none;">PARTIDA CONCLUÍDA!</h2>
+      <p style="font-size: 13px; color: var(--note-color); margin: 4px 0 0 0;">Você mandou super bem no tabuleiro!</p>
+      
+      <div class="win-stats-grid">
+        <div class="win-stat-box">
+          <span>⏱️ Tempo</span>
+          <strong id="win-time">--:--</strong>
+        </div>
+        <div class="win-stat-box">
+          <span>❌ Erros</span>
+          <strong id="win-errors">0</strong>
+        </div>
+        <div class="win-stat-box" style="grid-column: span 2; border-color: var(--hint-color); background: rgba(245, 158, 11, 0.08);">
+          <span>🪙 Recompensa</span>
+          <strong id="win-points" style="color: var(--hint-color); font-size: 22px;">+0 PONTOS</strong>
+        </div>
+      </div>
+
+      <div id="unlock-message" style="display:none; color: var(--hint-color); font-weight: bold; margin-bottom: 16px; font-size: 13px; background: rgba(245, 158, 11, 0.12); padding: 10px; border-radius: 12px; border: 1px solid var(--hint-color);"></div>
+      <button class="action-btn" style="width: 100%; padding: 12px; font-size: 15px; font-weight: 800; border-radius: 14px; background: linear-gradient(135deg, var(--primary-color), #2563eb);" onclick="closeWinModal()">Continuar Partida 🚀</button>
     </div>
-    <div id="unlock-message" style="display:none; color: var(--hint-color); font-weight: bold; margin-bottom: 14px;"></div>
-    <button class="action-btn" style="width: 100%; padding: 10px;" onclick="closeWinModal()">Continuar</button>
   </div>
 </div>
 
@@ -998,7 +1818,7 @@
 </div>
 
 <div class="modal-overlay" id="easter-egg-modal">
-  <div class="modal-card">
+  <div class="modal-card easter-egg-modal-card">
     <div class="love-card" id="love-message-text">Eu te amo, Benj &lt;3</div>
     <button class="action-btn" style="padding: 8px 20px;" onclick="closeEasterEggModal()">fofo ✨</button>
   </div>
@@ -1047,52 +1867,142 @@
 </div>
 
 <div class="modal-overlay" id="settings-modal">
-  <div class="modal-card">
-    <h2>⚙️ Configurações Gerais</h2>
-    <div class="switch-container"><span>✏️ Mostrar Botão Rascunho:</span><input type="checkbox" id="toggle-draft" checked style="transform: scale(1.3); cursor: pointer;"></div>
-    <div class="switch-container"><span>⏱️ Mostrar Cronômetro:</span><input type="checkbox" id="toggle-timer" checked style="transform: scale(1.3); cursor: pointer;"></div>
-    <div class="switch-container"><span>💡 Mostrar Botão de Dicas:</span><input type="checkbox" id="toggle-hints" checked style="transform: scale(1.3); cursor: pointer;"></div>
-    <div class="switch-container"><span>❌ Mostrar Contador de Erros:</span><input type="checkbox" id="toggle-errors" checked style="transform: scale(1.3); cursor: pointer;"></div>
-
-    <div style="margin-top: 14px; border-top: 1px solid var(--light-border); padding-top: 12px;">
-      <button class="action-btn" style="width: 100%; padding: 9px; background-color: #7c3aed;" onclick="closeSettingsModal(); openSecretCodeModal();">🔐 Inserir Código Secreto (Ctrl+B)</button>
-    </div>
-
-    <div id="admin-login-section" style="margin-top: 18px; border-top: 1px solid var(--light-border); padding-top: 14px;">
-      <p style="font-size: 13px; margin-bottom: 8px;">🔒 <strong>Modo Admin:</strong></p>
-      <form onsubmit="event.preventDefault(); checkAdminPassword();" style="display: flex; gap: 6px; justify-content: center;">
-        <input type="password" id="admin-pass-input" placeholder="Digite a senha..." style="width: 150px;">
-        <button type="submit" class="action-btn">Entrar</button>
-      </form>
-      <div id="admin-error-msg" style="font-size: 11px; color: var(--error-color); margin-top: 6px;"></div>
-    </div>
+  <div class="modal-card" style="max-width: 440px; text-align: left; max-height: 90vh; display: flex; flex-direction: column;">
+    <h2 style="text-align: center; margin-bottom: 20px; font-size: 20px; border-bottom: 2px solid var(--primary-color); padding-bottom: 10px;">⚙️ Configurações</h2>
     
-    <div id="admin-panel" style="display: none; border-top: 1px solid var(--light-border); padding-top: 14px; margin-top: 14px;">
-      <p style="font-size: 13px; color: var(--correct-color); font-weight: bold; margin: 0 0 10px 0;">✅ Modo Admin Ativado!</p>
-      <div class="switch-container"><span>💡 Dicas Infinitas:</span><input type="checkbox" id="infinite-hints-toggle" style="transform: scale(1.3); cursor: pointer;"></div>
-      
-      <div style="margin: 10px 0; display: flex; flex-direction: column; gap: 6px; text-align: left;">
-        <label style="font-size: 12px; font-weight: bold;">🪙 Adicionar Pontos:</label>
-        <div style="display: flex; gap: 6px;">
-          <input type="number" id="admin-add-points-input" value="100" min="1" style="flex: 1;">
-          <button class="action-btn" style="background-color: var(--hint-color); color: #000;" onclick="adminAddPoints()">Adicionar</button>
+    <div style="overflow-y: auto; flex: 1; padding-right: 4px; display: flex; flex-direction: column; gap: 16px;">
+    <!-- Seção de Preferências da Interface -->
+    <div class="settings-section">
+      <div class="settings-section-title">🎮 Preferências da Partida</div>
+      <div class="settings-group">
+        <div class="switch-container">
+          <span>⏱️ Iniciar Timer só após 1º Número</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="toggle-timer-first-input">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="switch-container">
+          <span>✏️ Botão de Rascunho</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="toggle-draft" checked>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="switch-container">
+          <span>⏱️ Cronômetro</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="toggle-timer" checked>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="switch-container">
+          <span>💡 Botão de Dicas</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="toggle-hints" checked>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="switch-container">
+          <span>❌ Contador de Erros</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="toggle-errors" checked>
+            <span class="toggle-slider"></span>
+          </label>
         </div>
       </div>
+    </div>
 
-      <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 12px;">
-        <button class="action-btn" style="background-color: #8b5cf6;" onclick="openAdminAchievementsModal()">🏅 Gerenciar Conquistas</button>
-        <button class="action-btn" style="background-color: #2563eb;" onclick="adminUnlockAllAchievements()">✨ Desbloquear Todas</button>
-        <button class="action-btn" style="background-color: #ef4444;" onclick="adminResetAchievements()">🔄 Resetar Conquistas</button>
-        <button class="action-btn" style="background-color: #d97706;" onclick="adminClearRecords()">🗑️ Limpar Apenas Recordes</button>
-        <button class="action-btn" style="background-color: #b91c1c;" onclick="adminClearHistory()">🗑️ Limpar Apenas Histórico</button>
+    <!-- Seção de Acesso Especial / Códigos -->
+    <div class="settings-section">
+      <div class="settings-section-title">🔑 Acesso Especial</div>
+      <button class="action-btn" style="width: 100%; padding: 12px; background: linear-gradient(135deg, #7c3aed, #6d28d9); border-radius: 12px; font-weight: 700; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 8px;" onclick="closeSettingsModal(); openSecretCodeModal();">
+        🔐 Inserir Código Secreto <span style="font-size: 11px; opacity: 0.8; background: rgba(0,0,0,0.2); padding: 2px 6px; border-radius: 6px;">Ctrl + B</span>
+      </button>
+    </div>
+
+    <!-- Seção de Administração -->
+    <div class="settings-section" style="margin-bottom: 0;">
+      <div class="settings-section-title">🛡️ Painel do Desenvolvedor</div>
+      
+      <div id="admin-login-section" class="settings-group" style="padding: 14px;">
+        <form onsubmit="event.preventDefault(); checkAdminPassword();" style="display: flex; gap: 8px;">
+          <input type="password" id="admin-pass-input" placeholder="Senha do Admin..." style="flex: 1; border-radius: 10px; padding: 10px 12px;">
+          <button type="submit" class="action-btn" style="padding: 10px 16px; border-radius: 10px; font-weight: 700;">Entrar</button>
+        </form>
+        <div id="admin-error-msg" style="font-size: 12px; color: var(--error-color); margin-top: 8px; font-weight: 600;"></div>
+      </div>
+
+      <div id="admin-panel" class="admin-card" style="display: none;">
+        <div class="admin-header-tag">⚡ Painel Admin Ativo</div>
+        
+        <div class="settings-group" style="margin-bottom: 12px;">
+          <div class="switch-container">
+            <span>💡 Dicas Infinitas</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="infinite-hints-toggle">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="switch-container">
+            <span>🔓 Liberar Todos Modos (Mestre/Lendário)</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="unlock-all-modes-toggle" onchange="toggleDevUnlockModes(this.checked)">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div style="background: var(--highlight-line-bg); border: 1px solid var(--light-border); padding: 12px; border-radius: 12px; margin-bottom: 12px;">
+          <label style="font-size: 11px; font-weight: 800; color: var(--note-color); text-transform: uppercase; display: block; margin-bottom: 6px;">🪙 Injetar Pontos na Conta</label>
+          <div style="display: flex; gap: 8px;">
+            <input type="number" id="admin-add-points-input" value="100" min="1" style="flex: 1; border-radius: 8px; padding: 8px 10px;">
+            <button class="action-btn" style="background-color: var(--hint-color); color: #000; font-weight: 800; border-radius: 8px; padding: 8px 14px;" onclick="adminAddPoints()">Injetar</button>
+          </div>
+        </div>
+
+        <div class="admin-actions-grid">
+          <button class="admin-btn" style="background-color: #8b5cf6; color: #fff;" onclick="openAdminAchievementsModal()">🏅 Conquistas</button>
+          <button class="admin-btn" style="background-color: #2563eb; color: #fff;" onclick="adminUnlockAllAchievements()">✨ Unlock All</button>
+          <button class="admin-btn" style="background-color: #d97706; color: #fff;" onclick="adminClearRecords()">🗑️ Recordes</button>
+          <button class="admin-btn" style="background-color: #b91c1c; color: #fff;" onclick="adminClearHistory()">🗑️ Histórico</button>
+          <button class="admin-btn" style="background-color: #ef4444; color: #fff; grid-column: span 2; border: 1px solid #dc2626;" onclick="adminResetAllData()">⚠️ Resetar Todos os Dados / Cookies & Cache</button>
+        </div>
       </div>
     </div>
 
-    <button class="action-btn" style="width: 100%; padding: 10px; margin-top: 18px;" onclick="closeSettingsModal()">Fechar</button>
+    </div>
+    <button class="action-btn" style="width: 100%; padding: 12px; margin-top: 14px; font-weight: 800; border-radius: 12px; background: var(--highlight-line-bg); border: 1px solid var(--light-border); color: var(--text-color); flex-shrink: 0;" onclick="closeSettingsModal()">Concluído</button>
   </div>
 </div>
 
 <script>
+  
+  let devForceUnlockModes = localStorage.getItem('sudoku_dev_unlock_modes') === 'true';
+
+  function toggleDevUnlockModes(isUnlocked) {
+    devForceUnlockModes = isUnlocked;
+    localStorage.setItem('sudoku_dev_unlock_modes', isUnlocked);
+    initAchievements();
+    showCustomAlert(isUnlocked ? '🔥 Dificuldades Mestre e Lendário foram LIBERADAS!' : '🔒 Dificuldades retornaram ao estado normal de progresso.');
+  }
+
+  function adminResetAllData() {
+    showCustomConfirm('⚠️ ATENÇÃO: Isso limpará TODOS os dados do jogo, pontos, skins, recordes, histórico e preferências locais! Deseja continuar?', (res) => {
+      if (res) {
+        localStorage.clear();
+        sessionStorage.clear();
+        
+        // Limpar cookies
+        document.cookie.split(";").forEach(function(c) {
+          document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=expires=" + new Date().toUTCString() + ";path=/");
+        });
+
+        location.reload();
+      }
+    });
+  }
+
   const ADMIN_PASSWORD = "1234";
 
   const baseSolution = [
@@ -1105,9 +2015,10 @@
   let loveMsgIndex = 0;
 
   let currentSolution = [], initialBoard = [], userBoard = [], notesBoard = [];
-  let moveHistory = [], selectedCell = null;
+  let moveHistory = [], selectedCell = null, lastInsertedCell = null;
   let errorCount = 0, hintsLeft = 3, hintsUsedInGame = 0;
   let timerSeconds = 0, timerInterval = null, isPaused = false;
+  let timerHasStarted = false;
   let isNoteMode = false, isDailyGame = false, isAdminLoggedIn = false, infiniteHintsEnabled = false;
   let streakCount = parseInt(localStorage.getItem('sudoku_streak') || '0');
 
@@ -1378,6 +2289,7 @@
 
   function initGlobalSettings() {
     const settingsMap = {
+      'toggle-timer-first-input': 'sudoku_cfg_timer_first',
       'toggle-draft': 'sudoku_cfg_draft',
       'toggle-timer': 'sudoku_cfg_timer',
       'toggle-hints': 'sudoku_cfg_hints',
@@ -1429,8 +2341,8 @@
       }
     });
     
-    const hasMaster = unlockedAchievements.includes('badge-unlock-master');
-    const hasLegendary = unlockedAchievements.includes('badge-unlock-legendary');
+    const hasMaster = devForceUnlockModes || unlockedAchievements.includes('badge-unlock-master');
+    const hasLegendary = devForceUnlockModes || unlockedAchievements.includes('badge-unlock-legendary');
     
     const optMaster = document.getElementById('opt-master');
     optMaster.disabled = !hasMaster;
@@ -1441,6 +2353,9 @@
     optLegendary.disabled = !hasLegendary;
     optLegendary.textContent = hasLegendary ? '🐉 Lendário' : '🔒 Lendário (Bloqueado)';
     document.getElementById('best-legendary-container').style.display = hasLegendary ? 'block' : 'none';
+
+    const unlockToggleEl = document.getElementById('unlock-all-modes-toggle');
+    if (unlockToggleEl) unlockToggleEl.checked = devForceUnlockModes;
 
     renderTrophiesShelf();
   }
@@ -1687,7 +2602,15 @@
     statusEl.textContent = isDaily ? '📅 Desafio Diário Ativo!' : '';
     
     localStorage.removeItem('sudoku_active_game');
-    startTimer();
+    timerHasStarted = false;
+    clearInterval(timerInterval);
+    timerSeconds = 0;
+    timerDisplay.textContent = formatTime(timerSeconds);
+    const startFirstInputEl = document.getElementById('toggle-timer-first-input');
+    if (!startFirstInputEl || !startFirstInputEl.checked) {
+      startTimer();
+      timerHasStarted = true;
+    }
     
     userBoard = initialBoard.map(row => [...row]);
     errorCount = 0; 
@@ -1762,6 +2685,10 @@
         }
 
         cell.addEventListener('click', () => { selectedCell = { r, c }; renderBoard(); });
+        
+        if (val !== 0 && lastInsertedCell && lastInsertedCell.r === r && lastInsertedCell.c === c) {
+          cell.classList.add('pop-num');
+        }
         boardEl.appendChild(cell);
       }
     }
@@ -1773,6 +2700,12 @@
     const { r, c } = selectedCell;
     if (initialBoard[r][c] !== 0) return;
 
+    const startFirstInputEl = document.getElementById('toggle-timer-first-input');
+    if (startFirstInputEl && startFirstInputEl.checked && !timerHasStarted && num !== 0) {
+      startTimer();
+      timerHasStarted = true;
+    }
+
     moveHistory.push({ r, c, val: userBoard[r][c], notes: new Set(notesBoard[r][c]) });
 
     if (isNoteMode && num !== 0) {
@@ -1781,6 +2714,7 @@
       userBoard[r][c] = 0;
     } else {
       userBoard[r][c] = num;
+      lastInsertedCell = { r, c };
       notesBoard[r][c].clear();
 
       if (num !== 0 && num !== currentSolution[r][c]) {
@@ -1888,7 +2822,35 @@
     if (checkAllAchievementsCompleted()) {
       document.getElementById('epic-win-modal').classList.add('active');
     } else {
-      document.getElementById('win-modal').classList.add('active');
+      
+    if (typeof confetti === 'function') {
+      // Disparo central inicial
+      confetti({ particleCount: 80, spread: 80, origin: { y: 0.6 } });
+
+      // Disparos contínuos nas laterais (canhões esquerdo e direito)
+      const duration = 2.5 * 1000;
+      const end = Date.now() + duration;
+
+      (function frame() {
+        confetti({
+          particleCount: 4,
+          angle: 60,
+          spread: 55,
+          origin: { x: 0, y: 0.7 }
+        });
+        confetti({
+          particleCount: 4,
+          angle: 120,
+          spread: 55,
+          origin: { x: 1, y: 0.7 }
+        });
+
+        if (Date.now() < end) {
+          requestAnimationFrame(frame);
+        }
+      })();
+    }
+    document.getElementById('win-modal').classList.add('active');
     }
   }
 
@@ -2053,10 +3015,55 @@
     document.body.classList.toggle('light-mode');
     document.getElementById('btn-theme').textContent = document.body.classList.contains('light-mode') ? '☀️' : '🌙';
   });
+  function spawnFloatingHearts() {
+    // Confetes puramente roxos irrompendo simultaneamente nos cantos esquerdo e direito da tela junto com o popup
+    if (typeof confetti === 'function') {
+      // Disparo inicial lado esquerdo
+      confetti({
+        particleCount: 80,
+        spread: 80,
+        origin: { x: 0.05, y: 0.85 },
+        colors: ['#a855f7', '#9333ea', '#c084fc', '#d8b4fe', '#7c3aed', '#e879f9']
+      });
+      // Disparo inicial lado direito
+      confetti({
+        particleCount: 80,
+        spread: 80,
+        origin: { x: 0.95, y: 0.85 },
+        colors: ['#a855f7', '#9333ea', '#c084fc', '#d8b4fe', '#7c3aed', '#e879f9']
+      });
+
+      const duration = 2.5 * 1000;
+      const end = Date.now() + duration;
+
+      (function frame() {
+        confetti({
+          particleCount: 6,
+          angle: 60,
+          spread: 70,
+          origin: { x: 0.0, y: 0.7 },
+          colors: ['#a855f7', '#c084fc', '#9333ea', '#d8b4fe']
+        });
+        confetti({
+          particleCount: 6,
+          angle: 120,
+          spread: 70,
+          origin: { x: 1.0, y: 0.7 },
+          colors: ['#d8b4fe', '#7c3aed', '#a855f7', '#e879f9']
+        });
+
+        if (Date.now() < end) {
+          requestAnimationFrame(frame);
+        }
+      })();
+    }
+}
+
   document.getElementById('btn-easter-egg').addEventListener('click', () => {
     document.getElementById('love-message-text').textContent = loveMessages[loveMsgIndex];
     loveMsgIndex = (loveMsgIndex + 1) % loveMessages.length;
     document.getElementById('easter-egg-modal').classList.add('active');
+    spawnFloatingHearts();
   });
 
   function closeSettingsModal() { document.getElementById('settings-modal').classList.remove('active'); }
@@ -2103,13 +3110,36 @@
   function buyHintWithPoints(price) {
     if (playerPoints >= price) {
       playerPoints -= price;
-      hintsLeft++;
+      hintsLeft += 3;
       updatePointsDisplay();
       updateHintDisplay();
       saveGameState();
-      showCustomAlert('Você comprou +1 dica por ' + price + ' pontos! 💡');
+      showCustomAlert('Você comprou +3 dicas por ' + price + ' pontos! 💡');
     } else {
-      showCustomAlert('Pontos insuficientes para comprar uma dica!');
+      showCustomAlert('Pontos insuficientes para comprar dicas!');
+    }
+  }
+
+
+  function switchSidebarTab(tabName) {
+    const isRecords = (tabName === 'records');
+    document.getElementById('tab-btn-records').classList.toggle('active', isRecords);
+    document.getElementById('tab-btn-badges').classList.toggle('active', !isRecords);
+    
+    const indicator = document.getElementById('slider-indicator');
+    const recordsPane = document.getElementById('tab-content-records');
+    const badgesPane = document.getElementById('tab-content-badges');
+    
+    if (isRecords) {
+      indicator.style.transform = 'translateX(0%)';
+      badgesPane.style.display = 'none';
+      recordsPane.style.display = 'block';
+      recordsPane.style.animation = 'fadeInPane 0.25s ease';
+    } else {
+      indicator.style.transform = 'translateX(100%)';
+      recordsPane.style.display = 'none';
+      badgesPane.style.display = 'block';
+      badgesPane.style.animation = 'fadeInPane 0.25s ease';
     }
   }
 
