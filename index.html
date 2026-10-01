@@ -197,7 +197,7 @@
       --bg-color: #1a1400;
       --card-bg: #2d2302;
       --text-color: #fde047;
-      --border-color: #eab308;
+      --border-color: var(--hint-color);
       --thick-border-color: #fde047;
       --light-border: #713f12;
       --primary-color: #ca8a04;
@@ -211,9 +211,9 @@
       --card-bg: #ffffff;
       --text-color: #713f12;
       --border-color: #ca8a04;
-      --thick-border-color: #eab308;
+      --thick-border-color: var(--hint-color);
       --light-border: #fef08a;
-      --primary-color: #eab308;
+      --primary-color: var(--hint-color);
       --highlight-line-bg: #fef9c3;
       --selected-bg: #fef08a;
       --highlight-match-bg: #fefce8;
@@ -618,7 +618,65 @@
       .container, .sidebar { padding: 24px; } 
       .numpad { grid-template-columns: repeat(6, 1fr); }
     }
-  </style>
+  
+    /* ==========================================
+       PAINEL DE ATUALIZAÇÕES (SIDE PANEL DOURADO)
+       ================================---------- */
+    .changelog-panel {
+      position: fixed;
+      top: 100px;
+      left: 20px;
+      background: var(--card-bg);
+      border: 2px solid var(--hint-color);
+      border-radius: 16px;
+      padding: 14px 18px;
+      box-shadow: 0 0 20px rgba(245, 158, 11, 0.3);
+      z-index: 85;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-width: 220px;
+      transition: all 0.3s ease;
+    }
+    .changelog-panel h4 {
+      margin: 0;
+      font-size: 13px;
+      color: var(--hint-color);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .changelog-panel p {
+      margin: 0;
+      font-size: 12px;
+      color: var(--note-color);
+      line-height: 1.4;
+    }
+    .changelog-btn {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: #000;
+      font-weight: bold;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .changelog-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(245, 158, 11, 0.4);
+    }
+    body.focus-mode .changelog-panel {
+      display: none !important;
+    }
+    @media (max-width: 1024px) {
+      .changelog-panel {
+        display: none !important;
+      }
+    }
+
+</style>
 </head>
 <body>
 
@@ -649,6 +707,14 @@
     <p style="font-size: 13px; margin: 0; color: var(--note-color);">Ganhe pontos vencendo partidas para desbloquear visuais exclusivos para o seu tabuleiro e site!</p>
     <div style="font-weight: bold; font-size: 14px; margin-top: 4px;">Seus Pontos: <span id="market-points-count" style="color: var(--hint-color);">0</span></div>
     
+    
+    <div class="skin-market-card">
+      <div>
+        <strong>💡 Pacote de Dica (+1)</strong><br><small style="color: var(--note-color);">Adiciona +1 dica na sua partida atual (15 pts)</small>
+      </div>
+      <button class="action-btn" style="background-color: var(--hint-color); color: #000;" onclick="buyHintWithPoints(15)">Comprar (+1)</button>
+    </div>
+
     <hr style="border:0; border-top:1px solid var(--light-border); margin: 6px 0;">
 
     <div class="skin-market-card">
@@ -757,6 +823,29 @@
         <button class="action-btn" id="skin-btn-golden" onclick="buyOrSelectSkin('golden', 0)">Bloqueado</button>
       </div>
     </div>
+  </div>
+</div>
+
+
+<div class="changelog-panel" id="changelog-panel">
+  <h4>✨ Novidades!</h4>
+  <p>Veja o que houve na última atualização do jogo.</p>
+  <button class="changelog-btn" onclick="openChangelogModal()">Ver Modificações 🚀</button>
+</div>
+
+<div class="modal-overlay" id="changelog-modal">
+  <div class="modal-card" style="max-width: 420px; text-align: left;">
+    <h2 style="text-align: center; color: var(--hint-color); border-bottom-color: var(--hint-color);">📜 ÚLTIMA ATUALIZAÇÃO</h2>
+    <div style="font-size: 13px; line-height: 1.6; margin: 16px 0; max-height: 280px; overflow-y: auto; padding-right: 6px;">
+      <ul style="padding-left: 18px; margin: 0; display: flex; flex-direction: column; gap: 10px;">
+        <li>💡 <strong>Dicas no Mercadinho:</strong> Agora você pode trocar 15 pontos por +1 Dica diretamente na lojinha para te ajudar em partidas difíceis!</li>
+        <li>🐉 <strong>Modo Lendário Acessível:</strong> Agora você pode desbloquear o modo Lendário apenas vencendo a dificuldade Mestre, sem a exigência de terminar sem erros!</li>
+        <li>🔥 <strong>Sem limite de erros no Mestre/Lendário:</strong> Os modos Mestre e Lendário não reiniciam mais o jogo após 3 erros, permitindo que você conclua partidas desafiadoras no seu ritmo.</li>
+        <li>🛒 <strong>Novos Temas e Estilos:</strong> Adicionados novos temas visuais no Mercadinho, como Musgo Soft e Ultramodel!</li>
+        <li>⚙️ <strong>Ajustes de Balanceamento:</strong> Melhorias gerais na fluidez da interface e suporte para navegação por teclado.</li>
+      </ul>
+    </div>
+    <button class="action-btn" style="width: 100%; padding: 10px; background-color: var(--hint-color); color: #000; font-weight: bold; font-size: 14px;" onclick="closeChangelogModal()">Legal! 🎉</button>
   </div>
 </div>
 
@@ -2002,6 +2091,28 @@
   if (!loadGameState()) {
     generatePuzzle();
   }
+
+  function openChangelogModal() {
+    document.getElementById('changelog-modal').classList.add('active');
+  }
+  function closeChangelogModal() {
+    document.getElementById('changelog-modal').classList.remove('active');
+  }
+
+
+  function buyHintWithPoints(price) {
+    if (playerPoints >= price) {
+      playerPoints -= price;
+      hintsLeft++;
+      updatePointsDisplay();
+      updateHintDisplay();
+      saveGameState();
+      showCustomAlert('Você comprou +1 dica por ' + price + ' pontos! 💡');
+    } else {
+      showCustomAlert('Pontos insuficientes para comprar uma dica!');
+    }
+  }
+
 </script>
 </body>
 </html>
